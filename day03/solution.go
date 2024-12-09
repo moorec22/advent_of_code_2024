@@ -3,12 +3,7 @@ package day03
 import (
 	"advent/util"
 	"bufio"
-	"reflect"
 )
-
-func isNil(i interface{}) bool {
-	return i == nil || reflect.ValueOf(i).IsNil()
-}
 
 func PartOneAnswer(filepath string) (int, error) {
 	answer := 0
@@ -54,7 +49,7 @@ func runProgram(s *bufio.Scanner, matchers []Matcher) (int, error) {
 		var instruction Instruction = NewStartInstruction()
 		remainder := line
 		var err error
-		for !isNil(instruction) {
+		for !util.IsNil(instruction) {
 			programState = instruction.Execute(programState)
 			instruction, remainder, err = getNextInstruction(remainder, matchers)
 			if err != nil {
@@ -75,7 +70,7 @@ func getNextInstruction(s string, matchers []Matcher) (Instruction, string, erro
 			nextMatcher = matcher
 		}
 	}
-	if isNil(nextMatcher) {
+	if util.IsNil(nextMatcher) {
 		return nil, s, nil
 	} else {
 		instruction, err := nextMatcher.Parse(s[nextMatch[0]:nextMatch[1]])
