@@ -1,7 +1,7 @@
 // Advent of Code, 2024, Day 2
 //
 // https://adventofcode.com/2024/day/2
-package main
+package day02
 
 import (
 	"advent/processing"
@@ -11,27 +11,17 @@ import (
 	"strings"
 )
 
-const Filepath = "files/input.txt"
-
-func main() {
-	parOne, err := safeCount(false)
-	if err != nil {
-		fmt.Printf("Error counting safe numbers: %s\n", err)
-		return
-	}
-	fmt.Printf("Safe without dampener: %d\n", parOne)
-
-	partTwo, err := safeCount(true)
-	if err != nil {
-		fmt.Printf("Error counting safe numbers with dampener: %s\n", err)
-		return
-	}
-	fmt.Printf("Safe with dampener: %d\n", partTwo)
+func PartOneAnswer(filepath string) (int, error) {
+	return safeCount(filepath, false)
 }
 
-func safeCount(problemDampener bool) (int, error) {
+func PartTwoAnswer(filepath string) (int, error) {
+	return safeCount(filepath, true)
+}
+
+func safeCount(filepath string, problemDampener bool) (int, error) {
 	safeCount := 0
-	err := processing.ProcessFile(Filepath, func(s *bufio.Scanner) error {
+	err := processing.ProcessFile(filepath, func(s *bufio.Scanner) error {
 		for s.Scan() {
 			line := s.Text()
 			if line == "" {
