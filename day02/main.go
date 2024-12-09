@@ -4,9 +4,9 @@
 package main
 
 import (
+	"advent/processing"
 	"bufio"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -31,7 +31,7 @@ func main() {
 
 func safeCount(problemDampener bool) (int, error) {
 	safeCount := 0
-	err := processFile(Filepath, func(s *bufio.Scanner) error {
+	err := processing.ProcessFile(Filepath, func(s *bufio.Scanner) error {
 		for s.Scan() {
 			line := s.Text()
 			if line == "" {
@@ -118,20 +118,4 @@ func copyWithoutIndex(s []int, index int) []int {
 	copy(newSlice, s[:index])
 	copy(newSlice[index:], s[index+1:])
 	return newSlice
-}
-
-func processFile(filepath string, process func(*bufio.Scanner) error) error {
-	file, err := os.Open(filepath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	scanner := getFileScanner(file)
-
-	return process(scanner)
-}
-
-func getFileScanner(file *os.File) *bufio.Scanner {
-	scanner := bufio.NewScanner(file)
-	return scanner
 }

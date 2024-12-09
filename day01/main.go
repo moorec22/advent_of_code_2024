@@ -4,9 +4,9 @@
 package main
 
 import (
+	"advent/processing"
 	"bufio"
 	"fmt"
-	"os"
 	"sort"
 )
 
@@ -88,7 +88,7 @@ func intAbs(x int) int {
 func getLists(filepath string) ([]int, []int, error) {
 	left := make([]int, 0)
 	right := make([]int, 0)
-	err := processFile(filepath, func(scanner *bufio.Scanner) error {
+	err := processing.ProcessFile(filepath, func(scanner *bufio.Scanner) error {
 		for scanner.Scan() {
 			var l, r int
 			_, err := fmt.Sscanf(scanner.Text(), "%d %d", &l, &r)
@@ -101,18 +101,4 @@ func getLists(filepath string) ([]int, []int, error) {
 		return nil
 	})
 	return left, right, err
-}
-
-// processFile safely opens a file designated by filepath, passes a scanner of
-// that file to process, and closes that file. Returns an error if there is an
-// error opening the file, or if process returns an error.
-func processFile(filepath string, process func(*bufio.Scanner) error) error {
-	file, err := os.Open(filepath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-
-	return process(scanner)
 }
