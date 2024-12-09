@@ -19,6 +19,13 @@ func main() {
 		return
 	}
 	fmt.Printf("Part 1 answer: %d\n", answer)
+
+	answer, err = partTwoAnswer(Filepath)
+	if err != nil {
+		fmt.Printf("Error getting answer for part 2: %s\n", err)
+		return
+	}
+	fmt.Printf("Part 2 answer: %d\n", answer)
 }
 
 func partOneAnswer(filepath string) (int, error) {
@@ -26,14 +33,43 @@ func partOneAnswer(filepath string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	if len(left) != len(right) {
-		return 0, fmt.Errorf("left and right lists are not the same length: %v, %v", left, right)
-	}
+	sort.Ints(left)
+	sort.Ints(right)
 	answer := 0
 	for i := 0; i < len(left); i++ {
 		answer += intAbs(left[i] - right[i])
 	}
 	return answer, nil
+}
+
+func partTwoAnswer(filepath string) (int, error) {
+	left, right, err := getLists(filepath)
+	if err != nil {
+		return 0, err
+	}
+	frequencies := getFrequencies(right)
+	answer := 0
+	for _, i := range left {
+		frequency, ok := frequencies[i]
+		if !ok {
+			frequency = 0
+		}
+		answer += i * frequency
+	}
+	return answer, nil
+}
+
+// getFrequencies returns a map where keys are values in `a`, and values are
+// the count of occurrences of that value in `a`.
+func getFrequencies(a []int) map[int]int {
+	frequencies := make(map[int]int)
+	for _, i := range a {
+		if _, ok := frequencies[i]; !ok {
+			frequencies[i] = 0
+		}
+		frequencies[i]++
+	}
+	return frequencies
 }
 
 // intAbs returns the absolute value of x.
@@ -48,7 +84,7 @@ func intAbs(x int) int {
 // filepath is a path to a file where each line contains two numbers, separated
 // by whitespace.
 //
-// The returned lists are sorted from smallest to largest.
+// It can be assumed that the returned lists are the same length.
 func getLists(filepath string) ([]int, []int, error) {
 	left := make([]int, 0)
 	right := make([]int, 0)
@@ -64,8 +100,6 @@ func getLists(filepath string) ([]int, []int, error) {
 		}
 		return nil
 	})
-	sort.Ints(left)
-	sort.Ints(right)
 	return left, right, err
 }
 
