@@ -30,19 +30,19 @@ func (m *MultiplyMatcher) NextMatch(s string) []int {
 
 func (m *MultiplyMatcher) Parse(s string) (Instruction, error) {
 	if !strings.HasPrefix(s, "mul(") || !strings.HasSuffix(s, ")") {
-		return nil, fmt.Errorf("Invalid instruction: %s", s)
+		return nil, fmt.Errorf("invalid instruction: %s", s)
 	}
 	numbers := strings.Split(s[4:len(s)-1], ",")
 	if len(numbers) != 2 {
-		return nil, fmt.Errorf("Invalid instruction: %s", s)
+		return nil, fmt.Errorf("invalid instruction: %s", s)
 	}
 	left, err := strconv.Atoi(numbers[0])
 	if err != nil {
-		return nil, fmt.Errorf("Invalid instruction: %s", s)
+		return nil, fmt.Errorf("invalid instruction: %s", s)
 	}
 	right, err := strconv.Atoi(numbers[1])
 	if err != nil {
-		return nil, fmt.Errorf("Invalid instruction: %s", s)
+		return nil, fmt.Errorf("invalid instruction: %s", s)
 	}
 	return NewMultiplyInstruction(left, right), nil
 }
@@ -63,7 +63,7 @@ func (m *DoMatcher) NextMatch(s string) []int {
 
 func (m *DoMatcher) Parse(s string) (Instruction, error) {
 	if s != "do()" {
-		return nil, fmt.Errorf("Invalid instruction: %s", s)
+		return nil, fmt.Errorf("invalid instruction: %s", s)
 	}
 	return NewDoInstruction(), nil
 }
@@ -84,7 +84,7 @@ func (m *DontMatcher) NextMatch(s string) []int {
 
 func (m *DontMatcher) Parse(s string) (Instruction, error) {
 	if s != "don't()" {
-		return nil, fmt.Errorf("Invalid instruction: %s", s)
+		return nil, fmt.Errorf("invalid instruction: %s", s)
 	}
 	return NewDontInstruction(), nil
 }
