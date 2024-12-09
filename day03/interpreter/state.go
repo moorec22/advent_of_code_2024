@@ -1,4 +1,4 @@
-package day03
+package interpreter
 
 // ProgramState is a struct that holds the current state of the program
 type ProgramState struct {

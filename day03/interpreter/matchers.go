@@ -1,4 +1,4 @@
-package day03
+package interpreter
 
 import (
 	"fmt"

@@ -1,82 +1,36 @@
 package day03
 
 import (
+	"advent/day03/interpreter"
 	"advent/util"
 	"bufio"
 )
 
 func PartOneAnswer(filepath string) (int, error) {
-	answer := 0
-	err := util.ProcessFile(filepath, func(s *bufio.Scanner) error {
-		var err error
-		matchers := []Matcher{
-			NewMultiplyMatcher(),
-		}
-		answer, err = runProgram(s, matchers)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	return answer, err
+	matchers := []interpreter.Matcher{
+		interpreter.NewMultiplyMatcher(),
+	}
+	return runProgramWithMatchers(filepath, matchers)
 }
 
 func PartTwoAnswer(filepath string) (int, error) {
+	matchers := []interpreter.Matcher{
+		interpreter.NewMultiplyMatcher(),
+		interpreter.NewDoMatcher(),
+		interpreter.NewDontMatcher(),
+	}
+	return runProgramWithMatchers(filepath, matchers)
+}
+
+func runProgramWithMatchers(filepath string, matchers []interpreter.Matcher) (int, error) {
 	answer := 0
 	err := util.ProcessFile(filepath, func(s *bufio.Scanner) error {
 		var err error
-		matchers := []Matcher{
-			NewMultiplyMatcher(),
-			NewDoMatcher(),
-			NewDontMatcher(),
-		}
-		answer, err = runProgram(s, matchers)
+		answer, err = interpreter.RunProgram(s, matchers)
 		if err != nil {
 			return err
 		}
 		return nil
 	})
 	return answer, err
-}
-
-func runProgram(s *bufio.Scanner, matchers []Matcher) (int, error) {
-	programState := NewProgramState()
-	for s.Scan() {
-		line := s.Text()
-		if line == "" {
-			continue
-		}
-		var instruction Instruction = NewStartInstruction()
-		remainder := line
-		var err error
-		for !util.IsNil(instruction) {
-			programState = instruction.Execute(programState)
-			instruction, remainder, err = getNextInstruction(remainder, matchers)
-			if err != nil {
-				return 0, err
-			}
-		}
-	}
-	return programState.Answer, nil
-}
-
-func getNextInstruction(s string, matchers []Matcher) (Instruction, string, error) {
-	var nextMatcher Matcher = nil
-	var nextMatch []int = nil
-	for _, matcher := range matchers {
-		match := matcher.NextMatch(s)
-		if match != nil && (nextMatch == nil || match[0] < nextMatch[0]) {
-			nextMatch = match
-			nextMatcher = matcher
-		}
-	}
-	if util.IsNil(nextMatcher) {
-		return nil, s, nil
-	} else {
-		instruction, err := nextMatcher.Parse(s[nextMatch[0]:nextMatch[1]])
-		if err != nil {
-			return nil, s, err
-		}
-		return instruction, s[nextMatch[1]:], nil
-	}
 }

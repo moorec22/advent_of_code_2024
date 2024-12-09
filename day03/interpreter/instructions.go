@@ -1,4 +1,4 @@
-package day03
+package interpreter
 
 // Instruction is a single instruction in the "programming language" defined by the problem
 type Instruction interface {
