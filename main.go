@@ -7,6 +7,11 @@ import (
 
 const Filepath = "day02/files/test.txt"
 
+type Solution interface {
+	PartOneAnswer(filepath string) (int, error)
+	PartTwoAnswer(filepath string) (int, error)
+}
+
 func main() {
 	answer, err := day02.PartOneAnswer(Filepath)
 	if err != nil {

@@ -4,7 +4,7 @@
 package day01
 
 import (
-	"advent/processing"
+	"advent/util"
 	"bufio"
 	"fmt"
 	"sort"
@@ -21,7 +21,7 @@ func PartOneAnswer(filepath string) (int, error) {
 	sort.Ints(right)
 	answer := 0
 	for i := 0; i < len(left); i++ {
-		answer += intAbs(left[i] - right[i])
+		answer += util.IntAbs(left[i] - right[i])
 	}
 	return answer, nil
 }
@@ -56,14 +56,6 @@ func getFrequencies(a []int) map[int]int {
 	return frequencies
 }
 
-// intAbs returns the absolute value of x.
-func intAbs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
 // getLists returns two lists of integers from a file designated by filepath.
 // filepath is a path to a file where each line contains two numbers, separated
 // by whitespace.
@@ -72,7 +64,7 @@ func intAbs(x int) int {
 func getLists(filepath string) ([]int, []int, error) {
 	left := make([]int, 0)
 	right := make([]int, 0)
-	err := processing.ProcessFile(filepath, func(scanner *bufio.Scanner) error {
+	err := util.ProcessFile(filepath, func(scanner *bufio.Scanner) error {
 		for scanner.Scan() {
 			var l, r int
 			_, err := fmt.Sscanf(scanner.Text(), "%d %d", &l, &r)
