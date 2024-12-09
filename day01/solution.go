@@ -1,7 +1,7 @@
 // Advent of Code, 2024, Day 1
 //
 // https://adventofcode.com/2024/day/1
-package main
+package day01
 
 import (
 	"advent/processing"
@@ -12,23 +12,7 @@ import (
 
 const Filepath = "files/test.txt"
 
-func main() {
-	answer, err := partOneAnswer(Filepath)
-	if err != nil {
-		fmt.Printf("Error getting answer for part 1: %s\n", err)
-		return
-	}
-	fmt.Printf("Part 1 answer: %d\n", answer)
-
-	answer, err = partTwoAnswer(Filepath)
-	if err != nil {
-		fmt.Printf("Error getting answer for part 2: %s\n", err)
-		return
-	}
-	fmt.Printf("Part 2 answer: %d\n", answer)
-}
-
-func partOneAnswer(filepath string) (int, error) {
+func PartOneAnswer(filepath string) (int, error) {
 	left, right, err := getLists(filepath)
 	if err != nil {
 		return 0, err
@@ -42,7 +26,7 @@ func partOneAnswer(filepath string) (int, error) {
 	return answer, nil
 }
 
-func partTwoAnswer(filepath string) (int, error) {
+func PartTwoAnswer(filepath string) (int, error) {
 	left, right, err := getLists(filepath)
 	if err != nil {
 		return 0, err
