@@ -12,7 +12,7 @@ func RunProgram(s *bufio.Scanner, matchers []Matcher) (int, error) {
 		if line == "" {
 			continue
 		}
-		var instruction Instruction = NewStartInstruction()
+		var instruction Instruction = NewEmptyInstruction()
 		remainder := line
 		var err error
 		for !util.IsNil(instruction) {

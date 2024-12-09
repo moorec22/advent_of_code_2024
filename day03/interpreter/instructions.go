@@ -2,19 +2,22 @@ package interpreter
 
 // Instruction is a single instruction in the "programming language" defined by the problem
 type Instruction interface {
+	// Execute with execute the instruction on the given ProgramState, and return the new ProgramState.
 	Execute(*ProgramState) *ProgramState
 }
 
-type StartInstruction struct{}
+// EmptyInstruction is an instruction that does nothing.
+type EmptyInstruction struct{}
 
-func NewStartInstruction() *StartInstruction {
-	return &StartInstruction{}
+func NewEmptyInstruction() *EmptyInstruction {
+	return &EmptyInstruction{}
 }
 
-func (i *StartInstruction) Execute(state *ProgramState) *ProgramState {
+func (i *EmptyInstruction) Execute(state *ProgramState) *ProgramState {
 	return state
 }
 
+// MultiplyInstruction is an instruction that multiplies two numbers together.
 type MultiplyInstruction struct {
 	left  int
 	right int
@@ -31,6 +34,7 @@ func (i *MultiplyInstruction) Execute(state *ProgramState) *ProgramState {
 	return state
 }
 
+// DoInstruction is an instruction that enables operations in the program state.
 type DoInstruction struct{}
 
 func NewDoInstruction() *DoInstruction {
@@ -42,6 +46,7 @@ func (i *DoInstruction) Execute(state *ProgramState) *ProgramState {
 	return state
 }
 
+// DontInstruction is an instruction that disables operations in the program state.
 type DontInstruction struct{}
 
 func NewDontInstruction() *DontInstruction {
