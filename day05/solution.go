@@ -2,18 +2,16 @@
 //
 // https://adventofcode.com/2024/day/5
 //
-// I decided to do part 1 by preprocessing the rules into a graph, and then
-// getting a list of all rules that were once indirect using the transitive
-// property. i.e., if a -> b -> c, then a -> c, where a, b, and c are rules.
-// This processing can take O(v^2) time, where v is the number of pages. But
-// afterwards the verficiation of each ordering takes O(n) time, where n is the
-// number of pages in the ordering.
+// Part 1 idea:
+// The rule set given to us defines all possible pairs of pages. Knowing this,
+// we can create a graph where the keys are the "from" page, and the values are
+// the "to" page. Then we can just check if each adjacent pair is a rule
+// violation.
 package day05
 
 import (
 	"advent/util"
 	"bufio"
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -45,8 +43,7 @@ func getValidOrderSum(filepath string) (int, error) {
 	validOrderingSum := 0
 	err := util.ProcessFile(filepath, func(s *bufio.Scanner) error {
 		edges := getEdges(s)
-		graph := getDenseGraph(edges)
-		fmt.Println(graph)
+		graph := getGraph(edges)
 		for s.Scan() {
 			line := s.Text()
 			ordering := strings.Split(line, ",")
@@ -61,33 +58,6 @@ func getValidOrderSum(filepath string) (int, error) {
 		return nil
 	})
 	return validOrderingSum, err
-}
-
-// getDenseGraph takes a list of edges and returns a graph where edges are
-// rules, indirect or direct, between nodes. For example, an edge may represent
-// rule a -> b, and another edge may represent rule a-> b -> c.
-func getDenseGraph(edges []*Edge) Graph {
-	toProcess := make([]*Edge, 0)
-	denseGraph := getGraph(edges)
-	for _, edge := range edges {
-		toProcess = append(toProcess, edge.Copy())
-	}
-	for len(toProcess) > 0 {
-		edge := toProcess[0]
-		toProcess = toProcess[1:]
-		firstLevel := denseGraph[edge.From]
-		secondLevel := denseGraph[edge.To]
-		for node := range secondLevel {
-			if _, ok := firstLevel[node]; !ok {
-				// adding the second level indirect connection as a direct connection
-				firstLevel[node] = true
-				// setting new node to process
-				toProcess = append(toProcess, NewEdge(edge.From, node))
-			}
-		}
-		denseGraph[edge.From] = firstLevel
-	}
-	return denseGraph
 }
 
 // getEdges takes a scanner and returns a list of all edges computed from the
@@ -122,7 +92,6 @@ func getGraph(edges []*Edge) Graph {
 func isValidOrdering(ordering []string, graph Graph) bool {
 	for i := 0; i < len(ordering)-1; i++ {
 		if _, ok := graph[ordering[i+1]][ordering[i]]; ok {
-			fmt.Println(ordering, ordering[i], ordering[i+1], graph[ordering[i+1]])
 			return false
 		}
 	}
