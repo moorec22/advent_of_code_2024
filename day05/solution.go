@@ -10,8 +10,9 @@
 //
 // Part 2 idea:
 // Because they give us all possible pairs of pages (and given the prompt), we
-// know there is only one valid ordering of pages. We can order pages by the
-// number of incoming edges, and then take the median of the ordering.
+// can sort a list by comparing two pages based on their edges in the graph.
+// For two pages, if p -> q is in the graph, then p is "smaller". Otherwise,
+// q is "smaller".
 package day05
 
 import (
@@ -31,10 +32,6 @@ type Edge struct {
 
 func NewEdge(from, to string) *Edge {
 	return &Edge{From: from, To: to}
-}
-
-func (e *Edge) Copy() *Edge {
-	return NewEdge(e.From, e.To)
 }
 
 func PartOneAnswer(filepath string) (int, error) {
@@ -60,14 +57,13 @@ func PartTwoAnswer(filepath string) (int, error) {
 	err := util.ProcessFile(filepath, func(s *bufio.Scanner) error {
 		edges := getEdges(s)
 		graph := getGraph(edges)
-		counts := getCounts(graph)
 		invalidOrderings, err := getOrderings(s, graph, false)
 		if err != nil {
 			return err
 		}
 		reorderedOrderings := make([][]string, 0)
 		for _, invalidOrdering := range invalidOrderings {
-			reorderedOrderings = append(reorderedOrderings, getValidOrdering(invalidOrdering, counts))
+			reorderedOrderings = append(reorderedOrderings, getValidOrdering(invalidOrdering, graph))
 		}
 		reorderedSum, err = getSumOfMedians(reorderedOrderings)
 		if err != nil {
@@ -151,24 +147,13 @@ func getValidOrderingMedian(ordering []string) (int, error) {
 	return strconv.Atoi(median)
 }
 
-// getCounts returns a map from a node to the number of incoming edges that
-// node has.
-func getCounts(graph Graph) map[string]int {
-	counts := make(map[string]int, 0)
-	for _, tos := range graph {
-		for to := range tos {
-			if _, ok := counts[to]; !ok {
-				counts[to] = 0
-			}
-			counts[to]++
-		}
-	}
-	return counts
-}
-
-func getValidOrdering(ordering []string, counts map[string]int) []string {
+func getValidOrdering(ordering []string, graph Graph) []string {
 	slices.SortFunc(ordering, func(i, j string) int {
-		return counts[i] - counts[j]
+		if _, ok := graph[j][i]; ok {
+			return 1
+		} else {
+			return -1
+		}
 	})
 	return ordering
 }
