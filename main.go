@@ -1,11 +1,11 @@
 package main
 
 import (
-	"advent/day04"
+	"advent/day05"
 	"fmt"
 )
 
-const Filepath = "day04/files/input.txt"
+const Filepath = "day05/files/input.txt"
 
 type Solution interface {
 	PartOneAnswer(filepath string) (int, error)
@@ -13,14 +13,14 @@ type Solution interface {
 }
 
 func main() {
-	answer, err := day04.PartOneAnswer(Filepath)
+	answer, err := day05.PartOneAnswer(Filepath)
 	if err != nil {
 		fmt.Printf("Error getting answer for part 1: %s\n", err)
 		return
 	}
 	fmt.Printf("Part 1 answer: %d\n", answer)
 
-	answer, err = day04.PartTwoAnswer(Filepath)
+	answer, err = day05.PartTwoAnswer(Filepath)
 	if err != nil {
 		fmt.Printf("Error getting answer for part 2: %s\n", err)
 		return
