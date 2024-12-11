@@ -116,8 +116,9 @@ func countWords(word string, matrix util.Matrix[rune]) int {
 
 	for i := 0; i < len(matrix); i++ {
 		for j := 0; j < len(matrix[i]); j++ {
-			trackers[i][j] = NewTracker()
-			forwardLetterIndex := strings.IndexRune(word, matrix[i][j])
+			p := util.NewPosition(i, j)
+			trackers.Set(p, NewTracker())
+			forwardLetterIndex := strings.IndexRune(word, matrix.Get(p))
 			backwardLetterIndex := len(word) - forwardLetterIndex - 1
 			if forwardLetterIndex == 0 {
 				trackers[i][j].forwardHorizontal = 0
@@ -126,16 +127,16 @@ func countWords(word string, matrix util.Matrix[rune]) int {
 				trackers[i][j].forwardDiagonalRight = 0
 			} else if forwardLetterIndex > 0 {
 				// This letter is in word, so we need to update the trackers
-				if (trackers.PosInBounds(util.Position{Row: i - 1, Col: j}) && trackers[i-1][j].forwardVertical+1 == forwardLetterIndex) {
+				if trackers.PosInBounds(util.NewPosition(i-1, j)) && trackers[i-1][j].forwardVertical+1 == forwardLetterIndex {
 					trackers[i][j].forwardVertical = forwardLetterIndex
 				}
-				if (trackers.PosInBounds(util.Position{Row: i, Col: j - 1}) && trackers[i][j-1].forwardHorizontal+1 == forwardLetterIndex) {
+				if trackers.PosInBounds(util.NewPosition(i, j-1)) && trackers[i][j-1].forwardHorizontal+1 == forwardLetterIndex {
 					trackers[i][j].forwardHorizontal = forwardLetterIndex
 				}
-				if (trackers.PosInBounds(util.Position{Row: i - 1, Col: j - 1}) && trackers[i-1][j-1].forwardDiagonalRight+1 == forwardLetterIndex) {
+				if trackers.PosInBounds(util.NewPosition(i-1, j-1)) && trackers[i-1][j-1].forwardDiagonalRight+1 == forwardLetterIndex {
 					trackers[i][j].forwardDiagonalRight = forwardLetterIndex
 				}
-				if (trackers.PosInBounds(util.Position{Row: i - 1, Col: j + 1}) && trackers[i-1][j+1].forwardDiagonalLeft+1 == forwardLetterIndex) {
+				if trackers.PosInBounds(util.NewPosition(i-1, j+1)) && trackers[i-1][j+1].forwardDiagonalLeft+1 == forwardLetterIndex {
 					trackers[i][j].forwardDiagonalLeft = forwardLetterIndex
 				}
 			}
@@ -145,16 +146,16 @@ func countWords(word string, matrix util.Matrix[rune]) int {
 				trackers[i][j].backwardDiagonalLeft = 0
 				trackers[i][j].backwardDiagonalRight = 0
 			} else if backwardLetterIndex > 0 {
-				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.Position{Row: i - 1, Col: j}) && trackers[i-1][j].backwardVertical+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewPosition(i-1, j)) && trackers[i-1][j].backwardVertical+1 == backwardLetterIndex) {
 					trackers[i][j].backwardVertical = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.Position{Row: i, Col: j - 1}) && trackers[i][j-1].backwardHorizontal+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewPosition(i, j-1)) && trackers[i][j-1].backwardHorizontal+1 == backwardLetterIndex) {
 					trackers[i][j].backwardHorizontal = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.Position{Row: i - 1, Col: j - 1}) && trackers[i-1][j-1].backwardDiagonalRight+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewPosition(i-1, j-1)) && trackers[i-1][j-1].backwardDiagonalRight+1 == backwardLetterIndex) {
 					trackers[i][j].backwardDiagonalRight = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.Position{Row: i - 1, Col: j + 1}) && trackers[i-1][j+1].backwardDiagonalLeft+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewPosition(i-1, j+1)) && trackers[i-1][j+1].backwardDiagonalLeft+1 == backwardLetterIndex) {
 					trackers[i][j].backwardDiagonalLeft = backwardLetterIndex
 				}
 			}
@@ -171,7 +172,7 @@ func countXmases(matrix util.Matrix[rune]) int {
 	count := 0
 	for i := 0; i < len(matrix); i++ {
 		for j := 0; j < len(matrix[i]); j++ {
-			if isXmasCenter(i, j, matrix) {
+			if isXmasCenter(util.NewPosition(i, j), matrix) {
 				count++
 			}
 		}
@@ -180,26 +181,30 @@ func countXmases(matrix util.Matrix[rune]) int {
 }
 
 // isXmasCenter returns true if the given position is the center of an X-MAS.
-func isXmasCenter(i, j int, matrix util.Matrix[rune]) bool {
-	if matrix[i][j] != 'A' {
+func isXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
+	if matrix.Get(p) != 'A' {
 		return false
 	}
-	if i-1 < 0 || i+1 >= len(matrix) || j-1 < 0 || j+1 >= len(matrix[i]) {
+	if p.Row-1 < 0 || p.Row+1 >= len(matrix) || p.Col-1 < 0 || p.Col+1 >= len(matrix[p.Row]) {
 		return false
 	}
-	return isLeftDiagonalXmasCenter(i, j, matrix) && isRightDiagonalXmasCenter(i, j, matrix)
+	return isLeftDiagonalXmasCenter(p, matrix) && isRightDiagonalXmasCenter(p, matrix)
 }
 
 // isLeftDiagonalXmasCenter returns true if the given position has an M and an S,
 // in either order, at matrix[i-1][j-1] and matrix[i+1][j+1].
-func isLeftDiagonalXmasCenter(i, j int, matrix util.Matrix[rune]) bool {
-	return (matrix[i-1][j-1] == 'M' && matrix[i+1][j+1] == 'S') ||
-		(matrix[i-1][j-1] == 'S' && matrix[i+1][j+1] == 'M')
+func isLeftDiagonalXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
+	topRight := util.NewPosition(p.Row-1, p.Col-1)
+	bottomLeft := util.NewPosition(p.Row+1, p.Col+1)
+	return (matrix.Get(topRight) == 'M' && matrix.Get(bottomLeft) == 'S') ||
+		(matrix.Get(topRight) == 'S' && matrix.Get(bottomLeft) == 'M')
 }
 
 // isRightDiagonalXmasCenter returns true if the given position has an M and an S,
 // in either order, at matrix[i-1][j+1] and matrix[i+1][j-1].
-func isRightDiagonalXmasCenter(i, j int, matrix util.Matrix[rune]) bool {
-	return (matrix[i-1][j+1] == 'M' && matrix[i+1][j-1] == 'S') ||
-		(matrix[i-1][j+1] == 'S' && matrix[i+1][j-1] == 'M')
+func isRightDiagonalXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
+	topLeft := util.NewPosition(p.Row-1, p.Col+1)
+	bottomRight := util.NewPosition(p.Row+1, p.Col-1)
+	return (matrix.Get(topLeft) == 'M' && matrix.Get(bottomRight) == 'S') ||
+		(matrix.Get(topLeft) == 'S' && matrix.Get(bottomRight) == 'M')
 }

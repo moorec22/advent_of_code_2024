@@ -2,11 +2,15 @@ package util
 
 import "fmt"
 
-type Matrix[T any] [][]T
-
 type Position struct {
 	Row, Col int
 }
+
+func NewPosition(row, col int) Position {
+	return Position{Row: row, Col: col}
+}
+
+type Matrix[T any] [][]T
 
 func NewMatrix[T any]() Matrix[T] {
 	return make([][]T, 0)
