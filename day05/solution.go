@@ -7,11 +7,17 @@
 // we can create a graph where the keys are the "from" page, and the values are
 // the "to" page. Then we can just check if each adjacent pair is a rule
 // violation.
+//
+// Part 2 idea:
+// Because they give us all possible pairs of pages (and given the prompt), we
+// know there is only one valid ordering of pages. We can order pages by the
+// number of incoming edges, and then take the median of the ordering.
 package day05
 
 import (
 	"advent/util"
 	"bufio"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -32,32 +38,74 @@ func (e *Edge) Copy() *Edge {
 }
 
 func PartOneAnswer(filepath string) (int, error) {
-	return getValidOrderSum(filepath)
-}
-
-func PartTwoAnswer(filepath string) (int, error) {
-	return 0, nil
-}
-
-func getValidOrderSum(filepath string) (int, error) {
-	validOrderingSum := 0
+	validOrderingsSum := 0
 	err := util.ProcessFile(filepath, func(s *bufio.Scanner) error {
 		edges := getEdges(s)
 		graph := getGraph(edges)
-		for s.Scan() {
-			line := s.Text()
-			ordering := strings.Split(line, ",")
-			if isValidOrdering(ordering, graph) {
-				median, err := getValidOrderingMedian(ordering)
-				if err != nil {
-					return err
-				}
-				validOrderingSum += median
-			}
+		validOrderings, err := getOrderings(s, graph, true)
+		if err != nil {
+			return err
 		}
-		return nil
+		validOrderingsSum, err = getSumOfMedians(validOrderings)
+		return err
 	})
-	return validOrderingSum, err
+	if err != nil {
+		return 0, err
+	}
+	return validOrderingsSum, err
+}
+
+func PartTwoAnswer(filepath string) (int, error) {
+	reorderedSum := 0
+	err := util.ProcessFile(filepath, func(s *bufio.Scanner) error {
+		edges := getEdges(s)
+		graph := getGraph(edges)
+		counts := getCounts(graph)
+		invalidOrderings, err := getOrderings(s, graph, false)
+		if err != nil {
+			return err
+		}
+		reorderedOrderings := make([][]string, 0)
+		for _, invalidOrdering := range invalidOrderings {
+			reorderedOrderings = append(reorderedOrderings, getValidOrdering(invalidOrdering, counts))
+		}
+		reorderedSum, err = getSumOfMedians(reorderedOrderings)
+		if err != nil {
+			return err
+		}
+		return err
+	})
+	if err != nil {
+		return 0, err
+	}
+	return reorderedSum, err
+}
+
+// getOrderingsTwo takes a scanner and returns a list of all orderings computed
+// from the input file. If uses the graph to determine validity, and returns all
+// valid orderings if valid is true, and all invalid orderings if valid is false.
+func getOrderings(s *bufio.Scanner, graph Graph, valid bool) ([][]string, error) {
+	orderings := make([][]string, 0)
+	for s.Scan() {
+		line := s.Text()
+		ordering := strings.Split(line, ",")
+		if valid == isValidOrdering(ordering, graph) {
+			orderings = append(orderings, ordering)
+		}
+	}
+	return orderings, nil
+}
+
+func getSumOfMedians(lists [][]string) (int, error) {
+	medianSum := 0
+	for _, list := range lists {
+		median, err := getValidOrderingMedian(list)
+		if err != nil {
+			return 0, err
+		}
+		medianSum += median
+	}
+	return medianSum, nil
 }
 
 // getEdges takes a scanner and returns a list of all edges computed from the
@@ -101,4 +149,26 @@ func isValidOrdering(ordering []string, graph Graph) bool {
 func getValidOrderingMedian(ordering []string) (int, error) {
 	median := ordering[len(ordering)/2]
 	return strconv.Atoi(median)
+}
+
+// getCounts returns a map from a node to the number of incoming edges that
+// node has.
+func getCounts(graph Graph) map[string]int {
+	counts := make(map[string]int, 0)
+	for _, tos := range graph {
+		for to := range tos {
+			if _, ok := counts[to]; !ok {
+				counts[to] = 0
+			}
+			counts[to]++
+		}
+	}
+	return counts
+}
+
+func getValidOrdering(ordering []string, counts map[string]int) []string {
+	slices.SortFunc(ordering, func(i, j string) int {
+		return counts[i] - counts[j]
+	})
+	return ordering
 }
