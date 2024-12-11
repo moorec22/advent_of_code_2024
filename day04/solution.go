@@ -87,8 +87,8 @@ func PartTwoAnswer(filepath string) (int, error) {
 
 // getMatrix returns a matrix of runes from a file. Each row is a line in the
 // file.
-func getMatrix(filepath string) [][]rune {
-	matrix := make([][]rune, 0)
+func getMatrix(filepath string) util.Matrix[rune] {
+	matrix := make(util.Matrix[rune], 0)
 	util.ProcessFile(filepath, func(s *bufio.Scanner) error {
 		for s.Scan() {
 			line := s.Text()
@@ -105,11 +105,11 @@ func getMatrix(filepath string) [][]rune {
 
 // countWords returns the number of times the word appears in the matrix.
 // For correct behavior, word must not have any repeating substrings.
-func countWords(word string, matrix [][]rune) int {
+func countWords(word string, matrix util.Matrix[rune]) int {
 	count := 0
 
 	// let's start by making the dynamic programming table
-	trackers := make([][]Tracker, len(matrix))
+	trackers := make(util.Matrix[Tracker], len(matrix))
 	for i := 0; i < len(matrix); i++ {
 		trackers[i] = make([]Tracker, len(matrix[i]))
 	}
@@ -126,16 +126,16 @@ func countWords(word string, matrix [][]rune) int {
 				trackers[i][j].forwardDiagonalRight = 0
 			} else if forwardLetterIndex > 0 {
 				// This letter is in word, so we need to update the trackers
-				if (positionInBounds(util.Position{Row: i - 1, Col: j}, trackers) && trackers[i-1][j].forwardVertical+1 == forwardLetterIndex) {
+				if (trackers.PosInBounds(util.Position{Row: i - 1, Col: j}) && trackers[i-1][j].forwardVertical+1 == forwardLetterIndex) {
 					trackers[i][j].forwardVertical = forwardLetterIndex
 				}
-				if (positionInBounds(util.Position{Row: i, Col: j - 1}, trackers) && trackers[i][j-1].forwardHorizontal+1 == forwardLetterIndex) {
+				if (trackers.PosInBounds(util.Position{Row: i, Col: j - 1}) && trackers[i][j-1].forwardHorizontal+1 == forwardLetterIndex) {
 					trackers[i][j].forwardHorizontal = forwardLetterIndex
 				}
-				if (positionInBounds(util.Position{Row: i - 1, Col: j - 1}, trackers) && trackers[i-1][j-1].forwardDiagonalRight+1 == forwardLetterIndex) {
+				if (trackers.PosInBounds(util.Position{Row: i - 1, Col: j - 1}) && trackers[i-1][j-1].forwardDiagonalRight+1 == forwardLetterIndex) {
 					trackers[i][j].forwardDiagonalRight = forwardLetterIndex
 				}
-				if (positionInBounds(util.Position{Row: i - 1, Col: j + 1}, trackers) && trackers[i-1][j+1].forwardDiagonalLeft+1 == forwardLetterIndex) {
+				if (trackers.PosInBounds(util.Position{Row: i - 1, Col: j + 1}) && trackers[i-1][j+1].forwardDiagonalLeft+1 == forwardLetterIndex) {
 					trackers[i][j].forwardDiagonalLeft = forwardLetterIndex
 				}
 			}
@@ -145,16 +145,16 @@ func countWords(word string, matrix [][]rune) int {
 				trackers[i][j].backwardDiagonalLeft = 0
 				trackers[i][j].backwardDiagonalRight = 0
 			} else if backwardLetterIndex > 0 {
-				if backwardLetterIndex == 0 || (positionInBounds(util.Position{Row: i - 1, Col: j}, trackers) && trackers[i-1][j].backwardVertical+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.Position{Row: i - 1, Col: j}) && trackers[i-1][j].backwardVertical+1 == backwardLetterIndex) {
 					trackers[i][j].backwardVertical = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (positionInBounds(util.Position{Row: i, Col: j - 1}, trackers) && trackers[i][j-1].backwardHorizontal+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.Position{Row: i, Col: j - 1}) && trackers[i][j-1].backwardHorizontal+1 == backwardLetterIndex) {
 					trackers[i][j].backwardHorizontal = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (positionInBounds(util.Position{Row: i - 1, Col: j - 1}, trackers) && trackers[i-1][j-1].backwardDiagonalRight+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.Position{Row: i - 1, Col: j - 1}) && trackers[i-1][j-1].backwardDiagonalRight+1 == backwardLetterIndex) {
 					trackers[i][j].backwardDiagonalRight = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (positionInBounds(util.Position{Row: i - 1, Col: j + 1}, trackers) && trackers[i-1][j+1].backwardDiagonalLeft+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.Position{Row: i - 1, Col: j + 1}) && trackers[i-1][j+1].backwardDiagonalLeft+1 == backwardLetterIndex) {
 					trackers[i][j].backwardDiagonalLeft = backwardLetterIndex
 				}
 			}
@@ -167,7 +167,7 @@ func countWords(word string, matrix [][]rune) int {
 // countXmases returns the number of X-MASes in the matrix. As defined in the
 // problem, an X-MAS is a 3x3 matrix with an A in the center and an M and an S
 // in the diagonals. The M and S can be top to bottom or bottom to top.
-func countXmases(matrix [][]rune) int {
+func countXmases(matrix util.Matrix[rune]) int {
 	count := 0
 	for i := 0; i < len(matrix); i++ {
 		for j := 0; j < len(matrix[i]); j++ {
@@ -180,7 +180,7 @@ func countXmases(matrix [][]rune) int {
 }
 
 // isXmasCenter returns true if the given position is the center of an X-MAS.
-func isXmasCenter(i, j int, matrix [][]rune) bool {
+func isXmasCenter(i, j int, matrix util.Matrix[rune]) bool {
 	if matrix[i][j] != 'A' {
 		return false
 	}
@@ -192,20 +192,14 @@ func isXmasCenter(i, j int, matrix [][]rune) bool {
 
 // isLeftDiagonalXmasCenter returns true if the given position has an M and an S,
 // in either order, at matrix[i-1][j-1] and matrix[i+1][j+1].
-func isLeftDiagonalXmasCenter(i, j int, matrix [][]rune) bool {
+func isLeftDiagonalXmasCenter(i, j int, matrix util.Matrix[rune]) bool {
 	return (matrix[i-1][j-1] == 'M' && matrix[i+1][j+1] == 'S') ||
 		(matrix[i-1][j-1] == 'S' && matrix[i+1][j+1] == 'M')
 }
 
 // isRightDiagonalXmasCenter returns true if the given position has an M and an S,
 // in either order, at matrix[i-1][j+1] and matrix[i+1][j-1].
-func isRightDiagonalXmasCenter(i, j int, matrix [][]rune) bool {
+func isRightDiagonalXmasCenter(i, j int, matrix util.Matrix[rune]) bool {
 	return (matrix[i-1][j+1] == 'M' && matrix[i+1][j-1] == 'S') ||
 		(matrix[i-1][j+1] == 'S' && matrix[i+1][j-1] == 'M')
-}
-
-// positionInBounds returns true if the given position is within the bounds of
-// the matrix.
-func positionInBounds(p util.Position, trackers [][]Tracker) bool {
-	return p.Row >= 0 && p.Row < len(trackers) && p.Col >= 0 && p.Col < len(trackers[p.Row])
 }
