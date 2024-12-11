@@ -24,10 +24,6 @@ import (
 
 const Word = "XMAS"
 
-type Position struct {
-	i, j int
-}
-
 // Tracker keeps track of the progress of a word in a given direction
 type Tracker struct {
 	// trackers for the word in the forward direction
@@ -130,16 +126,16 @@ func countWords(word string, matrix [][]rune) int {
 				trackers[i][j].forwardDiagonalRight = 0
 			} else if forwardLetterIndex > 0 {
 				// This letter is in word, so we need to update the trackers
-				if (positionInBounds(Position{i - 1, j}, trackers) && trackers[i-1][j].forwardVertical+1 == forwardLetterIndex) {
+				if (positionInBounds(util.Position{Row: i - 1, Col: j}, trackers) && trackers[i-1][j].forwardVertical+1 == forwardLetterIndex) {
 					trackers[i][j].forwardVertical = forwardLetterIndex
 				}
-				if (positionInBounds(Position{i, j - 1}, trackers) && trackers[i][j-1].forwardHorizontal+1 == forwardLetterIndex) {
+				if (positionInBounds(util.Position{Row: i, Col: j - 1}, trackers) && trackers[i][j-1].forwardHorizontal+1 == forwardLetterIndex) {
 					trackers[i][j].forwardHorizontal = forwardLetterIndex
 				}
-				if (positionInBounds(Position{i - 1, j - 1}, trackers) && trackers[i-1][j-1].forwardDiagonalRight+1 == forwardLetterIndex) {
+				if (positionInBounds(util.Position{Row: i - 1, Col: j - 1}, trackers) && trackers[i-1][j-1].forwardDiagonalRight+1 == forwardLetterIndex) {
 					trackers[i][j].forwardDiagonalRight = forwardLetterIndex
 				}
-				if (positionInBounds(Position{i - 1, j + 1}, trackers) && trackers[i-1][j+1].forwardDiagonalLeft+1 == forwardLetterIndex) {
+				if (positionInBounds(util.Position{Row: i - 1, Col: j + 1}, trackers) && trackers[i-1][j+1].forwardDiagonalLeft+1 == forwardLetterIndex) {
 					trackers[i][j].forwardDiagonalLeft = forwardLetterIndex
 				}
 			}
@@ -149,16 +145,16 @@ func countWords(word string, matrix [][]rune) int {
 				trackers[i][j].backwardDiagonalLeft = 0
 				trackers[i][j].backwardDiagonalRight = 0
 			} else if backwardLetterIndex > 0 {
-				if backwardLetterIndex == 0 || (positionInBounds(Position{i - 1, j}, trackers) && trackers[i-1][j].backwardVertical+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (positionInBounds(util.Position{Row: i - 1, Col: j}, trackers) && trackers[i-1][j].backwardVertical+1 == backwardLetterIndex) {
 					trackers[i][j].backwardVertical = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (positionInBounds(Position{i, j - 1}, trackers) && trackers[i][j-1].backwardHorizontal+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (positionInBounds(util.Position{Row: i, Col: j - 1}, trackers) && trackers[i][j-1].backwardHorizontal+1 == backwardLetterIndex) {
 					trackers[i][j].backwardHorizontal = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (positionInBounds(Position{i - 1, j - 1}, trackers) && trackers[i-1][j-1].backwardDiagonalRight+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (positionInBounds(util.Position{Row: i - 1, Col: j - 1}, trackers) && trackers[i-1][j-1].backwardDiagonalRight+1 == backwardLetterIndex) {
 					trackers[i][j].backwardDiagonalRight = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (positionInBounds(Position{i - 1, j + 1}, trackers) && trackers[i-1][j+1].backwardDiagonalLeft+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (positionInBounds(util.Position{Row: i - 1, Col: j + 1}, trackers) && trackers[i-1][j+1].backwardDiagonalLeft+1 == backwardLetterIndex) {
 					trackers[i][j].backwardDiagonalLeft = backwardLetterIndex
 				}
 			}
@@ -210,6 +206,6 @@ func isRightDiagonalXmasCenter(i, j int, matrix [][]rune) bool {
 
 // positionInBounds returns true if the given position is within the bounds of
 // the matrix.
-func positionInBounds(p Position, trackers [][]Tracker) bool {
-	return p.i >= 0 && p.i < len(trackers) && p.j >= 0 && p.j < len(trackers[p.i])
+func positionInBounds(p util.Position, trackers [][]Tracker) bool {
+	return p.Row >= 0 && p.Row < len(trackers) && p.Col >= 0 && p.Col < len(trackers[p.Row])
 }
