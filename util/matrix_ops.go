@@ -10,6 +10,10 @@ func NewPosition(row, col int) Position {
 	return Position{Row: row, Col: col}
 }
 
+func (p Position) Add(other Position) Position {
+	return Position{Row: p.Row + other.Row, Col: p.Col + other.Col}
+}
+
 type Matrix[T any] [][]T
 
 func NewMatrix[T any]() Matrix[T] {
