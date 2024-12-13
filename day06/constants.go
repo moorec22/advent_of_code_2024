@@ -5,7 +5,7 @@ import "advent/util"
 
 type Direction int
 
-const Emtpy = '.'
+const Empty = '.'
 const Obstacle = '#'
 
 const (
