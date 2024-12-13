@@ -10,6 +10,11 @@ const FilePrefix = "day06/files/"
 const TestFile = "test.txt"
 const InputFile = "input.txt"
 
+type Solution interface {
+	PartOneAnswer(filepath string) (int, error)
+	PartTwoAnswer(filepath string) (int, error)
+}
+
 func main() {
 	testFlag := setUpTestFlag()
 	filepath := getFilepath(*testFlag)
