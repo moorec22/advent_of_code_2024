@@ -1,3 +1,5 @@
+// A distance between two points in a two dimensional grid, defined in two
+// dimensions.
 package util
 
 type ManhattanDistance struct {

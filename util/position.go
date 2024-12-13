@@ -1,3 +1,4 @@
+// A position in a 2D grid.
 package util
 
 type Position struct {

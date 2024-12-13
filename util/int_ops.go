@@ -8,6 +8,7 @@ func IntAbs(a int) int {
 	return a
 }
 
+// GreatestCommonDivisor returns the greatest common divisor of two integers.
 func GreatestCommonDivisor(a, b int) int {
 	if b == 0 {
 		return a

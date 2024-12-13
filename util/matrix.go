@@ -1,3 +1,6 @@
+// A matrix is a two-dimensional array of values. This file contains a generic
+// implementation of a matrix, as well as some utility functions for working with
+// matrices.
 package util
 
 import "fmt"
