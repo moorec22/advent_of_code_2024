@@ -1,29 +1,43 @@
 package main
 
 import (
-	"advent/day05"
+	"advent/day06"
+	"flag"
 	"fmt"
 )
 
-const Filepath = "day05/files/input.txt"
-
-type Solution interface {
-	PartOneAnswer(filepath string) (int, error)
-	PartTwoAnswer(filepath string) (int, error)
-}
+const FilePrefix = "day06/files/"
+const TestFile = "test.txt"
+const InputFile = "input.txt"
 
 func main() {
-	answer, err := day05.PartOneAnswer(Filepath)
+	testFlag := setUpTestFlag()
+	filepath := getFilepath(*testFlag)
+
+	answer, err := day06.PartOneAnswer(filepath)
 	if err != nil {
 		fmt.Printf("Error getting answer for part 1: %s\n", err)
 		return
 	}
 	fmt.Printf("Part 1 answer: %d\n", answer)
 
-	answer, err = day05.PartTwoAnswer(Filepath)
+	answer, err = day06.PartTwoAnswer(filepath)
 	if err != nil {
 		fmt.Printf("Error getting answer for part 2: %s\n", err)
 		return
 	}
 	fmt.Printf("Part 2 answer: %d\n", answer)
+}
+
+func setUpTestFlag() *bool {
+	testFlag := flag.Bool("t", false, "run with test.txt")
+	flag.Parse()
+	return testFlag
+}
+
+func getFilepath(testFlag bool) string {
+	if testFlag {
+		return FilePrefix + TestFile
+	}
+	return FilePrefix + InputFile
 }
