@@ -1,13 +1,13 @@
 package main
 
 import (
-	"advent/day02"
+	"advent/day03"
 	"advent/util"
 	"flag"
 	"fmt"
 )
 
-const FilePrefix = "day02/files/"
+const FilePrefix = "day03/files/"
 const TestFile = "test.txt"
 const InputFile = "input.txt"
 
@@ -17,7 +17,7 @@ func main() {
 
 	var solution util.Solution
 
-	solution, err := day02.NewDay02Solution(filepath)
+	solution, err := day03.NewDay03Solution(filepath)
 
 	if err != nil {
 		fmt.Printf("Error creating solution: %s\n", err)
