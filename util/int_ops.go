@@ -7,3 +7,10 @@ func IntAbs(a int) int {
 	}
 	return a
 }
+
+func GreatestCommonDivisor(a, b int) int {
+	if b == 0 {
+		return a
+	}
+	return GreatestCommonDivisor(b, a%b)
+}
