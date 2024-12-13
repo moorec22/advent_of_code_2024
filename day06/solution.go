@@ -20,7 +20,6 @@ package day06
 
 import (
 	"advent/util"
-	"bufio"
 	"fmt"
 )
 
@@ -55,23 +54,18 @@ func (s *Day06Solution) PartTwoAnswer() (int, error) {
 // or an error if the file cannot be processed. The file is in the format
 // described in the prompt.
 func getLabMapAndGuard(filename string) (util.Matrix[rune], util.Position, error) {
-	labMap := util.NewMatrix[rune]()
-	guardPosition := util.Position{}
-	err := util.ProcessFile(filename, func(s *bufio.Scanner) error {
-		for s.Scan() {
-			line := s.Text()
-			row := make([]rune, 0)
-			for j, r := range line {
-				row = append(row, r)
-				if isGuard(r) {
-					guardPosition = util.Position{Row: len(labMap), Col: j}
-				}
+	labMap, err := util.ParseMatrix(filename)
+	if err != nil {
+		return labMap, util.Position{}, err
+	}
+	for i, row := range labMap {
+		for j, r := range row {
+			if isGuard(r) {
+				return labMap, util.NewPosition(i, j), nil
 			}
-			labMap = append(labMap, row)
 		}
-		return nil
-	})
-	return labMap, guardPosition, err
+	}
+	return labMap, util.Position{}, fmt.Errorf("no guard found in lab map")
 }
 
 // trackGuard returns all known locations the guard visits on their path. It is not

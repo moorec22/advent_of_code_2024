@@ -18,3 +18,19 @@ func ProcessFile(filepath string, process func(*bufio.Scanner) error) error {
 
 	return process(scanner)
 }
+
+func ParseMatrix(filepath string) (Matrix[rune], error) {
+	matrix := NewMatrix[rune]()
+	err := ProcessFile(filepath, func(scanner *bufio.Scanner) error {
+		for scanner.Scan() {
+			line := scanner.Text()
+			row := make([]rune, len(line))
+			for i, r := range line {
+				row[i] = r
+			}
+			matrix = append(matrix, row)
+		}
+		return scanner.Err()
+	})
+	return matrix, err
+}

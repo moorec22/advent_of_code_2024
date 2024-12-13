@@ -36,10 +36,10 @@ func (m Matrix[T]) PosInBounds(pos Position) bool {
 }
 
 // Print prints the matrix to the console.
-func (m Matrix[T]) Print() {
+func (m Matrix[T]) Print(toString func(T) string) {
 	for _, row := range m {
 		for _, val := range row {
-			fmt.Print(val)
+			fmt.Print(toString(val))
 		}
 		fmt.Println()
 	}
