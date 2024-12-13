@@ -24,65 +24,22 @@ import (
 
 const Word = "XMAS"
 
-// Tracker keeps track of the progress of a word in a given direction
-type Tracker struct {
-	// trackers for the word in the forward direction
-	forwardHorizontal, forwardVertical, forwardDiagonalLeft, forwardDiagonalRight int
-	// trackers for the word in the backward direction
-	backwardHorizontal, backwardVertical, backwardDiagonalLeft, backwardDiagonalRight int
+type Day04Solution struct {
+	wordSearch util.Matrix[rune]
 }
 
-func NewTracker() Tracker {
-	return Tracker{
-		forwardHorizontal:     -1,
-		forwardVertical:       -1,
-		forwardDiagonalLeft:   -1,
-		forwardDiagonalRight:  -1,
-		backwardHorizontal:    -1,
-		backwardVertical:      -1,
-		backwardDiagonalLeft:  -1,
-		backwardDiagonalRight: -1,
-	}
+func NewDay04Solution(filepath string) (*Day04Solution, error) {
+	return &Day04Solution{
+		wordSearch: getMatrix(filepath),
+	}, nil
 }
 
-// CountFrequencies returns the number of counters in t equal to i
-func (t *Tracker) CountFrequencies(i int) int {
-	count := 0
-	if t.forwardHorizontal == i {
-		count++
-	}
-	if t.forwardVertical == i {
-		count++
-	}
-	if t.forwardDiagonalLeft == i {
-		count++
-	}
-	if t.forwardDiagonalRight == i {
-		count++
-	}
-	if t.backwardHorizontal == i {
-		count++
-	}
-	if t.backwardVertical == i {
-		count++
-	}
-	if t.backwardDiagonalLeft == i {
-		count++
-	}
-	if t.backwardDiagonalRight == i {
-		count++
-	}
-	return count
+func (s *Day04Solution) PartOneAnswer() (int, error) {
+	return s.countWords(Word, s.wordSearch), nil
 }
 
-func PartOneAnswer(filepath string) (int, error) {
-	matrix := getMatrix(filepath)
-	return countWords(Word, matrix), nil
-}
-
-func PartTwoAnswer(filepath string) (int, error) {
-	matrix := getMatrix(filepath)
-	return countXmases(matrix), nil
+func (s *Day04Solution) PartTwoAnswer() (int, error) {
+	return s.countXmases(s.wordSearch), nil
 }
 
 // getMatrix returns a matrix of runes from a file. Each row is a line in the
@@ -105,7 +62,7 @@ func getMatrix(filepath string) util.Matrix[rune] {
 
 // countWords returns the number of times the word appears in the matrix.
 // For correct behavior, word must not have any repeating substrings.
-func countWords(word string, matrix util.Matrix[rune]) int {
+func (s *Day04Solution) countWords(word string, matrix util.Matrix[rune]) int {
 	count := 0
 
 	// let's start by making the dynamic programming table
@@ -168,11 +125,11 @@ func countWords(word string, matrix util.Matrix[rune]) int {
 // countXmases returns the number of X-MASes in the matrix. As defined in the
 // problem, an X-MAS is a 3x3 matrix with an A in the center and an M and an S
 // in the diagonals. The M and S can be top to bottom or bottom to top.
-func countXmases(matrix util.Matrix[rune]) int {
+func (s *Day04Solution) countXmases(matrix util.Matrix[rune]) int {
 	count := 0
 	for i := 0; i < len(matrix); i++ {
 		for j := 0; j < len(matrix[i]); j++ {
-			if isXmasCenter(util.NewPosition(i, j), matrix) {
+			if s.isXmasCenter(util.NewPosition(i, j), matrix) {
 				count++
 			}
 		}
@@ -181,19 +138,19 @@ func countXmases(matrix util.Matrix[rune]) int {
 }
 
 // isXmasCenter returns true if the given position is the center of an X-MAS.
-func isXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
+func (s *Day04Solution) isXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
 	if matrix.Get(p) != 'A' {
 		return false
 	}
 	if p.Row-1 < 0 || p.Row+1 >= len(matrix) || p.Col-1 < 0 || p.Col+1 >= len(matrix[p.Row]) {
 		return false
 	}
-	return isLeftDiagonalXmasCenter(p, matrix) && isRightDiagonalXmasCenter(p, matrix)
+	return s.isLeftDiagonalXmasCenter(p, matrix) && s.isRightDiagonalXmasCenter(p, matrix)
 }
 
 // isLeftDiagonalXmasCenter returns true if the given position has an M and an S,
 // in either order, at matrix[i-1][j-1] and matrix[i+1][j+1].
-func isLeftDiagonalXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
+func (s *Day04Solution) isLeftDiagonalXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
 	topRight := util.NewPosition(p.Row-1, p.Col-1)
 	bottomLeft := util.NewPosition(p.Row+1, p.Col+1)
 	return (matrix.Get(topRight) == 'M' && matrix.Get(bottomLeft) == 'S') ||
@@ -202,7 +159,7 @@ func isLeftDiagonalXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
 
 // isRightDiagonalXmasCenter returns true if the given position has an M and an S,
 // in either order, at matrix[i-1][j+1] and matrix[i+1][j-1].
-func isRightDiagonalXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
+func (s *Day04Solution) isRightDiagonalXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
 	topLeft := util.NewPosition(p.Row-1, p.Col+1)
 	bottomRight := util.NewPosition(p.Row+1, p.Col-1)
 	return (matrix.Get(topLeft) == 'M' && matrix.Get(bottomRight) == 'S') ||

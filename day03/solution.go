@@ -17,25 +17,33 @@ import (
 	"bufio"
 )
 
-func PartOneAnswer(filepath string) (int, error) {
+type Day03Solution struct {
+	filepath string
+}
+
+func NewDay03Solution(filepath string) (*Day03Solution, error) {
+	return &Day03Solution{filepath}, nil
+}
+
+func (s *Day03Solution) PartOneAnswer() (int, error) {
 	matchers := []interpreter.Matcher{
 		interpreter.NewMultiplyMatcher(),
 	}
-	return runProgramWithMatchers(filepath, matchers)
+	return s.runProgramWithMatchers(s.filepath, matchers)
 }
 
-func PartTwoAnswer(filepath string) (int, error) {
+func (s *Day03Solution) PartTwoAnswer() (int, error) {
 	matchers := []interpreter.Matcher{
 		interpreter.NewMultiplyMatcher(),
 		interpreter.NewDoMatcher(),
 		interpreter.NewDontMatcher(),
 	}
-	return runProgramWithMatchers(filepath, matchers)
+	return s.runProgramWithMatchers(s.filepath, matchers)
 }
 
 // runProgramWithMatchers runs the interpreter with the given matchers and
 // returns the final value of the program.
-func runProgramWithMatchers(filepath string, matchers []interpreter.Matcher) (int, error) {
+func (s *Day03Solution) runProgramWithMatchers(filepath string, matchers []interpreter.Matcher) (int, error) {
 	answer := 0
 	err := util.ProcessFile(filepath, func(s *bufio.Scanner) error {
 		var err error
