@@ -7,6 +7,7 @@ import (
 	"advent/day04"
 	"advent/day05"
 	"advent/day06"
+	"advent/day07"
 	"advent/util"
 	"flag"
 	"fmt"
@@ -55,9 +56,9 @@ func setUpFlags() (*bool, *int) {
 }
 
 func getFilepath(day int, testFlag bool) string {
-	filename := "intput"
+	filename := InputFileName
 	if testFlag {
-		filename = "test"
+		filename = TestFileName
 	}
 	return fmt.Sprintf(FilePrefix, getTwoDigitNumber(day), filename)
 }
@@ -78,6 +79,7 @@ var SolutionFactories = map[int]SolutionFactory{
 	4: Day04SolutionFactory,
 	5: Day05SolutionFactory,
 	6: Day06SolutionFactory,
+	7: Day07SolutionFactory,
 }
 
 func Day01SolutionFactory(filepath string) (util.Solution, error) {
@@ -102,4 +104,8 @@ func Day05SolutionFactory(filepath string) (util.Solution, error) {
 
 func Day06SolutionFactory(filepath string) (util.Solution, error) {
 	return day06.NewDay06Solution(filepath)
+}
+
+func Day07SolutionFactory(filepath string) (util.Solution, error) {
+	return day07.NewDay07Solution(filepath)
 }
