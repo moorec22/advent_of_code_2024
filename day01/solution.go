@@ -12,28 +12,33 @@ import (
 
 const Filepath = "files/test.txt"
 
-func PartOneAnswer(filepath string) (int, error) {
+type Day01Solution struct {
+	left  []int
+	right []int
+}
+
+func NewDay01Solution(filepath string) (*Day01Solution, error) {
 	left, right, err := getLists(filepath)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	sort.Ints(left)
 	sort.Ints(right)
+	return &Day01Solution{left, right}, nil
+}
+
+func (s *Day01Solution) PartOneAnswer() (int, error) {
 	answer := 0
-	for i := 0; i < len(left); i++ {
-		answer += util.IntAbs(left[i] - right[i])
+	for i := 0; i < len(s.left); i++ {
+		answer += util.IntAbs(s.left[i] - s.right[i])
 	}
 	return answer, nil
 }
 
-func PartTwoAnswer(filepath string) (int, error) {
-	left, right, err := getLists(filepath)
-	if err != nil {
-		return 0, err
-	}
-	frequencies := getFrequencies(right)
+func (s *Day01Solution) PartTwoAnswer() (int, error) {
+	frequencies := s.getFrequencies(s.right)
 	answer := 0
-	for _, i := range left {
+	for _, i := range s.left {
 		frequency, ok := frequencies[i]
 		if !ok {
 			frequency = 0
@@ -45,7 +50,7 @@ func PartTwoAnswer(filepath string) (int, error) {
 
 // getFrequencies returns a map where keys are values in `a`, and values are
 // the count of occurrences of that value in `a`.
-func getFrequencies(a []int) map[int]int {
+func (s *Day01Solution) getFrequencies(a []int) map[int]int {
 	frequencies := make(map[int]int)
 	for _, i := range a {
 		if _, ok := frequencies[i]; !ok {

@@ -1,32 +1,37 @@
 package main
 
 import (
-	"advent/day06"
+	"advent/day01"
+	"advent/util"
 	"flag"
 	"fmt"
 )
 
-const FilePrefix = "day06/files/"
+const FilePrefix = "day01/files/"
 const TestFile = "test.txt"
 const InputFile = "input.txt"
-
-type Solution interface {
-	PartOneAnswer(filepath string) (int, error)
-	PartTwoAnswer(filepath string) (int, error)
-}
 
 func main() {
 	testFlag := setUpTestFlag()
 	filepath := getFilepath(*testFlag)
 
-	answer, err := day06.PartOneAnswer(filepath)
+	var solution util.Solution
+
+	solution, err := day01.NewDay01Solution(filepath)
+
+	if err != nil {
+		fmt.Printf("Error creating solution: %s\n", err)
+		return
+	}
+
+	answer, err := solution.PartOneAnswer()
 	if err != nil {
 		fmt.Printf("Error getting answer for part 1: %s\n", err)
 		return
 	}
 	fmt.Printf("Part 1 answer: %d\n", answer)
 
-	answer, err = day06.PartTwoAnswer(filepath)
+	answer, err = solution.PartTwoAnswer()
 	if err != nil {
 		fmt.Printf("Error getting answer for part 2: %s\n", err)
 		return
