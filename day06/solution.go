@@ -14,11 +14,8 @@
 //     in her path when she turns right. If we store a data structure of obstacles
 //     based on their row and column, we could quickly check if it's worth putting
 //     a new obstacle in the guard's path at each step.
-//   - keeping track of not only where a guard has been, but what direction that
-//     guard stepped in last time. This would help us determine if the guard is
-//     looping.
 //   - keeping track of coordinates where the guard has turned. This helps indicate
-//     if the guard is looping.
+//     if the guard is looping. [DONE]
 package day06
 
 import (
@@ -32,8 +29,8 @@ func PartOneAnswer(filepath string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	steps, err := trackGuard(labMap, guard)
-	return steps, err
+	seenPositions, err := trackGuard(labMap, guard)
+	return len(seenPositions), err
 }
 
 func PartTwoAnswer(filepath string) (int, error) {
@@ -41,7 +38,11 @@ func PartTwoAnswer(filepath string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	steps, err := countLoops(labMap, guard)
+	seenPositions, err := trackGuard(getMatrixCopy(labMap), guard)
+	if err != nil {
+		return 0, err
+	}
+	steps, err := countLoops(labMap, guard, seenPositions)
 	return steps, err
 }
 
@@ -68,9 +69,8 @@ func getLabMapAndGuard(filename string) (util.Matrix[rune], util.Position, error
 	return labMap, guardPosition, err
 }
 
-// trackGuard returns the number of steps the guard walks in the map before
-// leaving the map
-func trackGuard(labMap util.Matrix[rune], guardPos util.Position) (int, error) {
+// trackGuard returns all known locations the guard visits on their path.
+func trackGuard(labMap util.Matrix[rune], guardPos util.Position) (map[util.Position]bool, error) {
 	var err error
 	seenPositions := make(map[util.Position]bool)
 	for labMap.PosInBounds(guardPos) {
@@ -79,52 +79,49 @@ func trackGuard(labMap util.Matrix[rune], guardPos util.Position) (int, error) {
 		}
 		guardPos, err = moveToNextPosition(labMap, guardPos)
 		if err != nil {
-			return 0, err
+			return seenPositions, err
 		}
 	}
-	return len(seenPositions), nil
+	return seenPositions, nil
 }
 
-func countLoops(labMap util.Matrix[rune], guardPos util.Position) (int, error) {
-	loops := 0
-	for labMap.PosInBounds(guardPos) {
-		nextPos, err := getNextPosition(guardPos, labMap.Get(guardPos))
+// countLoops returns the number of obstacles that would cause the guard to loop. It needs the lab map,
+// the starting position of the guard, and all positions the guard is seen at on her original path.
+func countLoops(labMap util.Matrix[rune], guardPos util.Position, seenPositions map[util.Position]bool) (int, error) {
+	delete(seenPositions, guardPos)
+	guard := labMap.Get(guardPos)
+	obstaclePositionCount := 0
+	for pos := range seenPositions {
+		labMap.Set(pos, Obstacle)
+		looping, err := isLooping(labMap, guardPos)
 		if err != nil {
 			return 0, err
 		}
-		if labMap.PosInBounds(nextPos) && !isObstacle(labMap.Get(nextPos)) {
-			guard := labMap.Get(guardPos)
-			labMap.Set(nextPos, 'O')
-			isLoop, err := isLooping(labMap, guardPos)
-			if err != nil {
-				return 0, err
-			}
-			if isLoop {
-				printMatrix(tracePath(labMap, guardPos))
-				fmt.Println()
-				loops++
-			}
-			labMap.Set(nextPos, Empty)
-			labMap.Set(guardPos, guard)
+		if looping {
+			obstaclePositionCount++
 		}
-		guardPos, err = moveToNextPosition(labMap, guardPos)
-		if err != nil {
-			return 0, err
-		}
+		labMap.Set(pos, Empty)
+		labMap.Set(guardPos, guard)
 	}
-	return loops, nil
+	return obstaclePositionCount, nil
 }
 
+// isLooping returns true if the guard is looping in the labMap, false otherwise. An error is returned
+// if there is a problem moving the guard.
 func isLooping(labMap util.Matrix[rune], guardPos util.Position) (bool, error) {
-	seenTurns := make(map[util.Position]bool)
-	var err error
+	seenTurns := make(map[util.Position]Direction)
 	for labMap.PosInBounds(guardPos) {
-		_, ok := seenTurns[guardPos]
-		if ok && isInFrontOfObstacle(labMap, guardPos) {
+		obstacleDirection, ok := seenTurns[guardPos]
+		currentDirection, err := getGuardDirection(labMap.Get(guardPos))
+		if err != nil {
+			return false, err
+		}
+		if ok && isInFrontOfObstacle(labMap, guardPos) && obstacleDirection == currentDirection {
 			// the guard has turned here before -- she is looping
+			labMap.Set(guardPos, Empty)
 			return true, nil
 		}
-		seenTurns[guardPos] = true
+		seenTurns[guardPos] = currentDirection
 		guardPos, err = moveToNextPosition(labMap, guardPos)
 		if err != nil {
 			return false, err
@@ -158,6 +155,7 @@ func moveToNextPosition(labMap util.Matrix[rune], guardPos util.Position) (util.
 	return nextPosition, nil
 }
 
+// isInFrontOfObstacle returns true if the guard is in front of an obstacle in the labMap.
 func isInFrontOfObstacle(labMap util.Matrix[rune], guardPos util.Position) bool {
 	guard := labMap.Get(guardPos)
 	nextPos, err := getNextPosition(guardPos, guard)
@@ -210,41 +208,14 @@ func getRightTurn(r rune) (rune, error) {
 	}
 }
 
-func tracePath(labMap util.Matrix[rune], guardPos util.Position) util.Matrix[rune] {
-	trace := util.NewMatrix[rune]()
-	for _, row := range labMap {
-		traceRow := make([]rune, len(row))
-		copy(traceRow, row)
-		trace = append(trace, traceRow)
-	}
-	seenTurns := make(map[util.Position]bool)
-	for trace.PosInBounds(guardPos) {
-		if isInFrontOfObstacle(trace, guardPos) {
-			trace[guardPos.Row][guardPos.Col] = '+'
-			_, ok := seenTurns[guardPos]
-			if ok {
-				// the guard has turned here before -- she is looping
-				return trace
-			}
-			seenTurns[guardPos] = true
-		} else {
-			direction, _ := getGuardDirection(trace.Get(guardPos))
-			if direction == Up || direction == Down {
-				trace[guardPos.Row][guardPos.Col] = '|'
-			} else {
-				trace[guardPos.Row][guardPos.Col] = '-'
-			}
-		}
-		guardPos, _ = moveToNextPosition(trace, guardPos)
-	}
-	return trace
-}
-
-func printMatrix(m util.Matrix[rune]) {
+func getMatrixCopy(m util.Matrix[rune]) util.Matrix[rune] {
+	copy := util.NewMatrix[rune]()
 	for _, row := range m {
-		for _, r := range row {
-			fmt.Printf("%c", r)
+		newRow := make([]rune, len(row))
+		for i, r := range row {
+			newRow[i] = r
 		}
-		fmt.Println()
+		copy = append(copy, newRow)
 	}
+	return copy
 }
