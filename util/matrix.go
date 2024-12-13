@@ -1,18 +1,9 @@
+// A matrix is a two-dimensional array of values. This file contains a generic
+// implementation of a matrix, as well as some utility functions for working with
+// matrices.
 package util
 
 import "fmt"
-
-type Position struct {
-	Row, Col int
-}
-
-func NewPosition(row, col int) Position {
-	return Position{Row: row, Col: col}
-}
-
-func (p Position) Add(other Position) Position {
-	return Position{Row: p.Row + other.Row, Col: p.Col + other.Col}
-}
 
 type Matrix[T any] [][]T
 
@@ -36,10 +27,10 @@ func (m Matrix[T]) PosInBounds(pos Position) bool {
 }
 
 // Print prints the matrix to the console.
-func (m Matrix[T]) Print() {
+func (m Matrix[T]) Print(toString func(T) string) {
 	for _, row := range m {
 		for _, val := range row {
-			fmt.Print(val)
+			fmt.Print(toString(val))
 		}
 		fmt.Println()
 	}

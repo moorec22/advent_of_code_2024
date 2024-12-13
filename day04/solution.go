@@ -18,7 +18,6 @@ package day04
 
 import (
 	"advent/util"
-	"bufio"
 	"strings"
 )
 
@@ -29,9 +28,8 @@ type Day04Solution struct {
 }
 
 func NewDay04Solution(filepath string) (*Day04Solution, error) {
-	return &Day04Solution{
-		wordSearch: getMatrix(filepath),
-	}, nil
+	wordSearch, err := util.ParseMatrix(filepath)
+	return &Day04Solution{wordSearch}, err
 }
 
 func (s *Day04Solution) PartOneAnswer() (int, error) {
@@ -40,24 +38,6 @@ func (s *Day04Solution) PartOneAnswer() (int, error) {
 
 func (s *Day04Solution) PartTwoAnswer() (int, error) {
 	return s.countXmases(s.wordSearch), nil
-}
-
-// getMatrix returns a matrix of runes from a file. Each row is a line in the
-// file.
-func getMatrix(filepath string) util.Matrix[rune] {
-	matrix := make(util.Matrix[rune], 0)
-	util.ProcessFile(filepath, func(s *bufio.Scanner) error {
-		for s.Scan() {
-			line := s.Text()
-			row := make([]rune, 0)
-			for _, r := range line {
-				row = append(row, r)
-			}
-			matrix = append(matrix, row)
-		}
-		return nil
-	})
-	return matrix
 }
 
 // countWords returns the number of times the word appears in the matrix.

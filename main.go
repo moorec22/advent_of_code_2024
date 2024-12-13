@@ -8,6 +8,7 @@ import (
 	"advent/day05"
 	"advent/day06"
 	"advent/day07"
+	"advent/day08"
 	"advent/util"
 	"flag"
 	"fmt"
@@ -25,8 +26,13 @@ func main() {
 	}
 	filepath := getFilepath(*dayFlag, *testFlag)
 
-	solution, err := SolutionFactories[*dayFlag](filepath)
+	factory, ok := SolutionFactories[*dayFlag]
+	if !ok {
+		fmt.Printf("No solution found for day %d\n", *dayFlag)
+		return
+	}
 
+	solution, err := factory(filepath)
 	if err != nil {
 		fmt.Printf("Error creating solution: %s\n", err)
 		return
@@ -80,6 +86,7 @@ var SolutionFactories = map[int]SolutionFactory{
 	5: Day05SolutionFactory,
 	6: Day06SolutionFactory,
 	7: Day07SolutionFactory,
+	8: Day08SolutionFactory,
 }
 
 func Day01SolutionFactory(filepath string) (util.Solution, error) {
@@ -108,4 +115,8 @@ func Day06SolutionFactory(filepath string) (util.Solution, error) {
 
 func Day07SolutionFactory(filepath string) (util.Solution, error) {
 	return day07.NewDay07Solution(filepath)
+}
+
+func Day08SolutionFactory(filepath string) (util.Solution, error) {
+	return day08.NewDay08Solution(filepath)
 }
