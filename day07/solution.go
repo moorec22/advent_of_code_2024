@@ -3,6 +3,13 @@
 // https://adventofcode.com/2024/day/7
 //
 // Part 1 Idea: Naive solution, try all operator possibilities
+//
+// Part 2 Idea: Also naive solution! With the additional operator
+//
+// Optimization Ideas:
+//   - Because all the operators increase the result, we can stop trying
+//     operators when the result is greater than the left side of the equation.
+//     [DONE]
 package day07
 
 import (
@@ -99,6 +106,9 @@ func (s *Day07Solution) validEquation(e Equation, operators []Operator) bool {
 func (s *Day07Solution) validEquationHelper(e Equation, operators []Operator, currentVal, i int) bool {
 	if i == len(e.right) {
 		return currentVal == e.left
+	}
+	if currentVal > e.left {
+		return false
 	}
 	for _, op := range operators {
 		if s.validEquationHelper(e, operators, op.apply(currentVal, e.right[i]), i+1) {
