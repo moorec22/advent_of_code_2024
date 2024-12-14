@@ -9,6 +9,8 @@ import (
 	"advent/day06"
 	"advent/day07"
 	"advent/day08"
+	"advent/day09"
+	"advent/day10"
 	"advent/util"
 	"flag"
 	"fmt"
@@ -79,14 +81,16 @@ func getTwoDigitNumber(n int) string {
 type SolutionFactory func(string) (util.Solution, error)
 
 var SolutionFactories = map[int]SolutionFactory{
-	1: Day01SolutionFactory,
-	2: Day02SolutionFactory,
-	3: Day03SolutionFactory,
-	4: Day04SolutionFactory,
-	5: Day05SolutionFactory,
-	6: Day06SolutionFactory,
-	7: Day07SolutionFactory,
-	8: Day08SolutionFactory,
+	1:  Day01SolutionFactory,
+	2:  Day02SolutionFactory,
+	3:  Day03SolutionFactory,
+	4:  Day04SolutionFactory,
+	5:  Day05SolutionFactory,
+	6:  Day06SolutionFactory,
+	7:  Day07SolutionFactory,
+	8:  Day08SolutionFactory,
+	9:  Day09SolutionFactory,
+	10: Day10SolutionFactory,
 }
 
 func Day01SolutionFactory(filepath string) (util.Solution, error) {
@@ -119,4 +123,12 @@ func Day07SolutionFactory(filepath string) (util.Solution, error) {
 
 func Day08SolutionFactory(filepath string) (util.Solution, error) {
 	return day08.NewDay08Solution(filepath)
+}
+
+func Day09SolutionFactory(filepath string) (util.Solution, error) {
+	return day09.NewDay09Solution(filepath)
+}
+
+func Day10SolutionFactory(filepath string) (util.Solution, error) {
+	return day10.NewDay10Solution(filepath)
 }

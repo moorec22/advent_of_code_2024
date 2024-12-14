@@ -54,7 +54,9 @@ func (s *Day06Solution) PartTwoAnswer() (int, error) {
 // or an error if the file cannot be processed. The file is in the format
 // described in the prompt.
 func getLabMapAndGuard(filename string) (util.Matrix[rune], util.Position, error) {
-	labMap, err := util.ParseMatrix(filename)
+	labMap, err := util.ParseMatrix(filename, func(r rune) rune {
+		return r
+	})
 	if err != nil {
 		return labMap, util.Position{}, err
 	}

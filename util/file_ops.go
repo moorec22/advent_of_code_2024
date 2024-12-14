@@ -19,14 +19,14 @@ func ProcessFile(filepath string, process func(*bufio.Scanner) error) error {
 	return process(scanner)
 }
 
-func ParseMatrix(filepath string) (Matrix[rune], error) {
-	matrix := NewMatrix[rune]()
+func ParseMatrix[T any](filepath string, toT func(rune) T) (Matrix[T], error) {
+	matrix := NewMatrix[T]()
 	err := ProcessFile(filepath, func(scanner *bufio.Scanner) error {
 		for scanner.Scan() {
 			line := scanner.Text()
-			row := make([]rune, len(line))
+			row := make([]T, len(line))
 			for i, r := range line {
-				row[i] = r
+				row[i] = toT(r)
 			}
 			matrix = append(matrix, row)
 		}
