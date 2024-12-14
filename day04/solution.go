@@ -28,7 +28,9 @@ type Day04Solution struct {
 }
 
 func NewDay04Solution(filepath string) (*Day04Solution, error) {
-	wordSearch, err := util.ParseMatrix(filepath)
+	wordSearch, err := util.ParseMatrix(filepath, func(r rune) rune {
+		return r
+	})
 	return &Day04Solution{wordSearch}, err
 }
 
