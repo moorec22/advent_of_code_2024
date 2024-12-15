@@ -11,19 +11,19 @@ func NewMatrix[T any]() Matrix[T] {
 	return make([][]T, 0)
 }
 
-// Get returns the value at the given position in the matrix.
-func (m Matrix[T]) Get(pos Position) T {
-	return m[pos.Row][pos.Col]
+// Get returns the value at the given vector in the matrix.
+func (m Matrix[T]) Get(pos Vector) T {
+	return m[pos.X][pos.Y]
 }
 
-// Set sets the value at the given position in the matrix.
-func (m Matrix[T]) Set(pos Position, val T) {
-	m[pos.Row][pos.Col] = val
+// Set sets the value at the given vector in the matrix.
+func (m Matrix[T]) Set(pos Vector, val T) {
+	m[pos.X][pos.Y] = val
 }
 
-// PosInBounds returns true if the given position is within the bounds of the matrix.
-func (m Matrix[T]) PosInBounds(pos Position) bool {
-	return pos.Row >= 0 && pos.Row < len(m) && pos.Col >= 0 && pos.Col < len((m)[0])
+// PosInBounds returns true if the given vector is within the bounds of the matrix.
+func (m Matrix[T]) PosInBounds(pos Vector) bool {
+	return pos.X >= 0 && pos.X < len(m) && pos.Y >= 0 && pos.Y < len((m)[0])
 }
 
 // Print prints the matrix to the console.

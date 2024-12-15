@@ -22,11 +22,11 @@ var guardPositions = map[rune]Direction{
 	'<': Left,
 }
 
-var unitVectors = map[Direction]util.Position{
-	Up:    {Row: -1, Col: 0},
-	Right: {Row: 0, Col: 1},
-	Down:  {Row: 1, Col: 0},
-	Left:  {Row: 0, Col: -1},
+var unitVectors = map[Direction]util.Vector{
+	Up:    {X: -1, Y: 0},
+	Right: {X: 0, Y: 1},
+	Down:  {X: 1, Y: 0},
+	Left:  {X: 0, Y: -1},
 }
 
 // DistanceMap maps each direction to the distance to the next obstacle. -1

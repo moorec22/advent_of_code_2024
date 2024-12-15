@@ -8,7 +8,7 @@
 //
 // Part 2: To find resonant antinodes, we have to make sure we have the unit
 // manhattan distance. We can then add the unit manhattan distance to each
-// antenna's position until we reach the edge of the city map.
+// antenna's Vector until we reach the edge of the city map.
 package day08
 
 import (
@@ -18,8 +18,8 @@ import (
 const Empty = '.'
 
 type Antenna struct {
-	position util.Position
-	symbol   rune
+	Vector util.Vector
+	symbol rune
 }
 
 type Day08Solution struct {
@@ -39,12 +39,12 @@ func NewDay08Solution(filepath string) (*Day08Solution, error) {
 }
 
 func (s *Day08Solution) PartOneAnswer() (int, error) {
-	antinodes := s.getAntinodesPositions(s.cityMap, s.antennas, s.getFixedAntinodes)
+	antinodes := s.getAntinodesVectors(s.cityMap, s.antennas, s.getFixedAntinodes)
 	return len(antinodes), nil
 }
 
 func (s *Day08Solution) PartTwoAnswer() (int, error) {
-	antinodes := s.getAntinodesPositions(s.cityMap, s.antennas, s.getResonantAntinodes)
+	antinodes := s.getAntinodesVectors(s.cityMap, s.antennas, s.getResonantAntinodes)
 	return len(antinodes), nil
 }
 
@@ -54,18 +54,18 @@ func getAntennas(cityMap util.Matrix[rune]) map[rune][]Antenna {
 	for y, row := range cityMap {
 		for x, symbol := range row {
 			if symbol != Empty {
-				antennas[symbol] = append(antennas[symbol], Antenna{util.NewPosition(x, y), symbol})
+				antennas[symbol] = append(antennas[symbol], Antenna{util.NewVector(x, y), symbol})
 			}
 		}
 	}
 	return antennas
 }
 
-// getAntinodesPositions returns all antinodes defined by the list of antennas. It uses getAntinodesFromAntennas
+// getAntinodesVectors returns all antinodes defined by the list of antennas. It uses getAntinodesFromAntennas
 // to calculate the antinodes for each pair of antennas.
-func (s *Day08Solution) getAntinodesPositions(cityMap util.Matrix[rune], antennasBySymbol map[rune][]Antenna,
-	getAntinodesFromAntennas func(Antenna, Antenna, util.Matrix[rune]) []util.Position) map[util.Position]bool {
-	antinodes := make(map[util.Position]bool)
+func (s *Day08Solution) getAntinodesVectors(cityMap util.Matrix[rune], antennasBySymbol map[rune][]Antenna,
+	getAntinodesFromAntennas func(Antenna, Antenna, util.Matrix[rune]) []util.Vector) map[util.Vector]bool {
+	antinodes := make(map[util.Vector]bool)
 	for _, antennas := range antennasBySymbol {
 		for i, antenna1 := range antennas {
 			for j := i + 1; j < len(antennas); j++ {
@@ -83,14 +83,14 @@ func (s *Day08Solution) getAntinodesPositions(cityMap util.Matrix[rune], antenna
 }
 
 // getFixedAntinodes returns all fixed antinodes defined by two antennas.
-// As defined by the problem, fixed antinodes can be in two positions: the two
-// positions that are exactly twice as far from one antenna as the other.
-func (s *Day08Solution) getFixedAntinodes(one, two Antenna, cityMap util.Matrix[rune]) []util.Position {
-	fixedAntinodes := make([]util.Position, 0)
-	manhattanDistance := two.position.GetManhattanDistance(one.position)
+// As defined by the problem, fixed antinodes can be in two Vectors: the two
+// Vectors that are exactly twice as far from one antenna as the other.
+func (s *Day08Solution) getFixedAntinodes(one, two Antenna, cityMap util.Matrix[rune]) []util.Vector {
+	fixedAntinodes := make([]util.Vector, 0)
+	manhattanDistance := two.Vector.GetManhattanDistance(one.Vector)
 	negativeManhattanDistance := manhattanDistance.Negate()
-	oneAntinode := one.position.AddManhattanDistance(negativeManhattanDistance)
-	twoAntinode := two.position.AddManhattanDistance(manhattanDistance)
+	oneAntinode := one.Vector.AddManhattanDistance(negativeManhattanDistance)
+	twoAntinode := two.Vector.AddManhattanDistance(manhattanDistance)
 	if s.cityMap.PosInBounds(oneAntinode) {
 		fixedAntinodes = append(fixedAntinodes, oneAntinode)
 	}
@@ -103,17 +103,17 @@ func (s *Day08Solution) getFixedAntinodes(one, two Antenna, cityMap util.Matrix[
 // getResonantAntinodes returns all resonant antinodes defined by two antennas.
 // As defined by the problem, resonant antiodes are any antinodes exactly in
 // line with the two antennas.
-func (s *Day08Solution) getResonantAntinodes(one, two Antenna, cityMap util.Matrix[rune]) []util.Position {
-	resonantAntinodes := make([]util.Position, 0)
-	manhattanDistance := two.position.GetManhattanDistance(one.position)
+func (s *Day08Solution) getResonantAntinodes(one, two Antenna, cityMap util.Matrix[rune]) []util.Vector {
+	resonantAntinodes := make([]util.Vector, 0)
+	manhattanDistance := two.Vector.GetManhattanDistance(one.Vector)
 	unitManhattanDistance := manhattanDistance.Unit()
 	negativeUnitManhattanDistance := unitManhattanDistance.Negate()
-	resonantFromOne := one.position
+	resonantFromOne := one.Vector
 	for s.cityMap.PosInBounds(resonantFromOne) {
 		resonantAntinodes = append(resonantAntinodes, resonantFromOne)
 		resonantFromOne = resonantFromOne.AddManhattanDistance(negativeUnitManhattanDistance)
 	}
-	resonantFromTwo := two.position
+	resonantFromTwo := two.Vector
 	for s.cityMap.PosInBounds(resonantFromTwo) {
 		resonantAntinodes = append(resonantAntinodes, resonantFromTwo)
 		resonantFromTwo = resonantFromTwo.AddManhattanDistance(unitManhattanDistance)
