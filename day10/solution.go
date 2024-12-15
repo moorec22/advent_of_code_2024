@@ -13,13 +13,6 @@ import (
 	"advent/util"
 )
 
-var Directions = []util.Position{
-	util.NewPosition(0, 1),
-	util.NewPosition(1, 0),
-	util.NewPosition(0, -1),
-	util.NewPosition(-1, 0),
-}
-
 const Trailhead = '0'
 const Peak = '9'
 
@@ -50,7 +43,7 @@ func (s *Day10Solution) countReachablePeaks(trailMap util.Matrix[rune], unique b
 	for i, row := range trailMap {
 		for j, cell := range row {
 			if cell == Trailhead {
-				reachablePeaks += s.countReachablePeaksFrom(trailMap, util.NewPosition(i, j), unique)
+				reachablePeaks += s.countReachablePeaksFrom(trailMap, util.NewVector(i, j), unique)
 			}
 		}
 	}
@@ -62,7 +55,7 @@ func (s *Day10Solution) countReachablePeaks(trailMap util.Matrix[rune], unique b
 // no matter how many ways there are to reach it. Otherwise, all trails are
 // counted.
 func (s *Day10Solution) countReachablePeaksFrom(trailMap util.Matrix[rune],
-	p util.Position, unique bool) int {
+	p util.Vector, unique bool) int {
 	reachablePeaks := s.getEndOfTrailsFrom(trailMap, p)
 	if unique {
 		return s.countUnique(reachablePeaks)
@@ -72,13 +65,13 @@ func (s *Day10Solution) countReachablePeaksFrom(trailMap util.Matrix[rune],
 }
 
 // countTrailEndsFrom returns the ending position for every trail reachable from p.
-func (s *Day10Solution) getEndOfTrailsFrom(trailMap util.Matrix[rune], p util.Position) []util.Position {
+func (s *Day10Solution) getEndOfTrailsFrom(trailMap util.Matrix[rune], p util.Vector) []util.Vector {
 	elevation := trailMap.Get(p)
 	if elevation == Peak {
-		return []util.Position{p}
+		return []util.Vector{p}
 	}
-	reachablePeaks := make([]util.Position, 0)
-	for _, dir := range Directions {
+	reachablePeaks := make([]util.Vector, 0)
+	for _, dir := range util.SimpleDirections {
 		newPos := p.Add(dir)
 		if trailMap.PosInBounds(newPos) && trailMap.Get(newPos) == elevation+1 {
 			reachablePeaks = append(reachablePeaks, s.getEndOfTrailsFrom(trailMap, newPos)...)
@@ -87,8 +80,8 @@ func (s *Day10Solution) getEndOfTrailsFrom(trailMap util.Matrix[rune], p util.Po
 	return reachablePeaks
 }
 
-func (s *Day10Solution) countUnique(positions []util.Position) int {
-	unique := make(map[util.Position]bool)
+func (s *Day10Solution) countUnique(positions []util.Vector) int {
+	unique := make(map[util.Vector]bool)
 	for _, p := range positions {
 		unique[p] = true
 	}

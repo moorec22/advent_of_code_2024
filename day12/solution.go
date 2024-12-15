@@ -51,7 +51,7 @@ func (s *Day12Solution) getFencingPrice(gardenSquareMap util.Matrix[GardenSquare
 	for i := range gardenSquareMap {
 		for j := range gardenSquareMap[i] {
 			if !gardenSquareMap[i][j].visited {
-				area, perimiter := s.getFencingAreaAndPerimiter(gardenSquareMap, util.NewPosition(i, j))
+				area, perimiter := s.getFencingAreaAndPerimiter(gardenSquareMap, util.NewVector(i, j))
 				price += area * perimiter
 			}
 		}
@@ -64,7 +64,7 @@ func (s *Day12Solution) getFencingPriceWithDiscount(gardenSquareMap util.Matrix[
 	for i := range gardenSquareMap {
 		for j := range gardenSquareMap[i] {
 			if !gardenSquareMap[i][j].visited {
-				area, corners := s.getFencingAreaAndCorners(gardenSquareMap, util.NewPosition(i, j))
+				area, corners := s.getFencingAreaAndCorners(gardenSquareMap, util.NewVector(i, j))
 				fmt.Println(string(gardenSquareMap[i][j].Plant), area, corners)
 				price += area * corners
 			}
@@ -78,12 +78,12 @@ func (s *Day12Solution) getFencingPriceWithDiscount(gardenSquareMap util.Matrix[
 // problem, the permiter is the number of sides of the region that are adjacent
 // to the edge of the garden or different garden plots, and the area is the
 // total number of squares in the plot.
-func (s *Day12Solution) getFencingAreaAndPerimiter(gardenMap util.Matrix[GardenSquare], p util.Position) (int, int) {
+func (s *Day12Solution) getFencingAreaAndPerimiter(gardenMap util.Matrix[GardenSquare], p util.Vector) (int, int) {
 	currentSquare := gardenMap.Get(p)
 	if currentSquare.visited {
 		return 0, 0
 	}
-	gardenMap[p.Row][p.Col].visited = true
+	gardenMap[p.X][p.Y].visited = true
 	area := 1
 	perimiter := 0
 	for _, d := range util.SimpleDirections {
@@ -102,12 +102,12 @@ func (s *Day12Solution) getFencingAreaAndPerimiter(gardenMap util.Matrix[GardenS
 
 // getFencingAreaAndCorners returns the area and number of corners of the
 // remaining part of the region starting at p that is unvisited.
-func (s *Day12Solution) getFencingAreaAndCorners(gardenMap util.Matrix[GardenSquare], p util.Position) (int, int) {
+func (s *Day12Solution) getFencingAreaAndCorners(gardenMap util.Matrix[GardenSquare], p util.Vector) (int, int) {
 	currentSquare := gardenMap.Get(p)
 	if currentSquare.visited {
 		return 0, 0
 	}
-	gardenMap[p.Row][p.Col].visited = true
+	gardenMap[p.X][p.Y].visited = true
 	area := 1
 	corners := 0
 	for _, d := range util.SimpleDirections {

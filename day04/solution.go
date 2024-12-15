@@ -55,7 +55,7 @@ func (s *Day04Solution) countWords(word string, matrix util.Matrix[rune]) int {
 
 	for i := 0; i < len(matrix); i++ {
 		for j := 0; j < len(matrix[i]); j++ {
-			p := util.NewPosition(i, j)
+			p := util.NewVector(i, j)
 			trackers.Set(p, NewTracker())
 			forwardLetterIndex := strings.IndexRune(word, matrix.Get(p))
 			backwardLetterIndex := len(word) - forwardLetterIndex - 1
@@ -66,16 +66,16 @@ func (s *Day04Solution) countWords(word string, matrix util.Matrix[rune]) int {
 				trackers[i][j].forwardDiagonalRight = 0
 			} else if forwardLetterIndex > 0 {
 				// This letter is in word, so we need to update the trackers
-				if trackers.PosInBounds(util.NewPosition(i-1, j)) && trackers[i-1][j].forwardVertical+1 == forwardLetterIndex {
+				if trackers.PosInBounds(util.NewVector(i-1, j)) && trackers[i-1][j].forwardVertical+1 == forwardLetterIndex {
 					trackers[i][j].forwardVertical = forwardLetterIndex
 				}
-				if trackers.PosInBounds(util.NewPosition(i, j-1)) && trackers[i][j-1].forwardHorizontal+1 == forwardLetterIndex {
+				if trackers.PosInBounds(util.NewVector(i, j-1)) && trackers[i][j-1].forwardHorizontal+1 == forwardLetterIndex {
 					trackers[i][j].forwardHorizontal = forwardLetterIndex
 				}
-				if trackers.PosInBounds(util.NewPosition(i-1, j-1)) && trackers[i-1][j-1].forwardDiagonalRight+1 == forwardLetterIndex {
+				if trackers.PosInBounds(util.NewVector(i-1, j-1)) && trackers[i-1][j-1].forwardDiagonalRight+1 == forwardLetterIndex {
 					trackers[i][j].forwardDiagonalRight = forwardLetterIndex
 				}
-				if trackers.PosInBounds(util.NewPosition(i-1, j+1)) && trackers[i-1][j+1].forwardDiagonalLeft+1 == forwardLetterIndex {
+				if trackers.PosInBounds(util.NewVector(i-1, j+1)) && trackers[i-1][j+1].forwardDiagonalLeft+1 == forwardLetterIndex {
 					trackers[i][j].forwardDiagonalLeft = forwardLetterIndex
 				}
 			}
@@ -85,16 +85,16 @@ func (s *Day04Solution) countWords(word string, matrix util.Matrix[rune]) int {
 				trackers[i][j].backwardDiagonalLeft = 0
 				trackers[i][j].backwardDiagonalRight = 0
 			} else if backwardLetterIndex > 0 {
-				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewPosition(i-1, j)) && trackers[i-1][j].backwardVertical+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewVector(i-1, j)) && trackers[i-1][j].backwardVertical+1 == backwardLetterIndex) {
 					trackers[i][j].backwardVertical = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewPosition(i, j-1)) && trackers[i][j-1].backwardHorizontal+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewVector(i, j-1)) && trackers[i][j-1].backwardHorizontal+1 == backwardLetterIndex) {
 					trackers[i][j].backwardHorizontal = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewPosition(i-1, j-1)) && trackers[i-1][j-1].backwardDiagonalRight+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewVector(i-1, j-1)) && trackers[i-1][j-1].backwardDiagonalRight+1 == backwardLetterIndex) {
 					trackers[i][j].backwardDiagonalRight = backwardLetterIndex
 				}
-				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewPosition(i-1, j+1)) && trackers[i-1][j+1].backwardDiagonalLeft+1 == backwardLetterIndex) {
+				if backwardLetterIndex == 0 || (trackers.PosInBounds(util.NewVector(i-1, j+1)) && trackers[i-1][j+1].backwardDiagonalLeft+1 == backwardLetterIndex) {
 					trackers[i][j].backwardDiagonalLeft = backwardLetterIndex
 				}
 			}
@@ -111,7 +111,7 @@ func (s *Day04Solution) countXmases(matrix util.Matrix[rune]) int {
 	count := 0
 	for i := 0; i < len(matrix); i++ {
 		for j := 0; j < len(matrix[i]); j++ {
-			if s.isXmasCenter(util.NewPosition(i, j), matrix) {
+			if s.isXmasCenter(util.NewVector(i, j), matrix) {
 				count++
 			}
 		}
@@ -119,31 +119,31 @@ func (s *Day04Solution) countXmases(matrix util.Matrix[rune]) int {
 	return count
 }
 
-// isXmasCenter returns true if the given position is the center of an X-MAS.
-func (s *Day04Solution) isXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
+// isXmasCenter returns true if the given Vector is the center of an X-MAS.
+func (s *Day04Solution) isXmasCenter(p util.Vector, matrix util.Matrix[rune]) bool {
 	if matrix.Get(p) != 'A' {
 		return false
 	}
-	if p.Row-1 < 0 || p.Row+1 >= len(matrix) || p.Col-1 < 0 || p.Col+1 >= len(matrix[p.Row]) {
+	if p.X-1 < 0 || p.X+1 >= len(matrix) || p.Y-1 < 0 || p.Y+1 >= len(matrix[p.X]) {
 		return false
 	}
 	return s.isLeftDiagonalXmasCenter(p, matrix) && s.isRightDiagonalXmasCenter(p, matrix)
 }
 
-// isLeftDiagonalXmasCenter returns true if the given position has an M and an S,
+// isLeftDiagonalXmasCenter returns true if the given Vector has an M and an S,
 // in either order, at matrix[i-1][j-1] and matrix[i+1][j+1].
-func (s *Day04Solution) isLeftDiagonalXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
-	topRight := util.NewPosition(p.Row-1, p.Col-1)
-	bottomLeft := util.NewPosition(p.Row+1, p.Col+1)
+func (s *Day04Solution) isLeftDiagonalXmasCenter(p util.Vector, matrix util.Matrix[rune]) bool {
+	topRight := util.NewVector(p.X-1, p.Y-1)
+	bottomLeft := util.NewVector(p.X+1, p.Y+1)
 	return (matrix.Get(topRight) == 'M' && matrix.Get(bottomLeft) == 'S') ||
 		(matrix.Get(topRight) == 'S' && matrix.Get(bottomLeft) == 'M')
 }
 
-// isRightDiagonalXmasCenter returns true if the given position has an M and an S,
+// isRightDiagonalXmasCenter returns true if the given Vector has an M and an S,
 // in either order, at matrix[i-1][j+1] and matrix[i+1][j-1].
-func (s *Day04Solution) isRightDiagonalXmasCenter(p util.Position, matrix util.Matrix[rune]) bool {
-	topLeft := util.NewPosition(p.Row-1, p.Col+1)
-	bottomRight := util.NewPosition(p.Row+1, p.Col-1)
+func (s *Day04Solution) isRightDiagonalXmasCenter(p util.Vector, matrix util.Matrix[rune]) bool {
+	topLeft := util.NewVector(p.X-1, p.Y+1)
+	bottomRight := util.NewVector(p.X+1, p.Y-1)
 	return (matrix.Get(topLeft) == 'M' && matrix.Get(bottomRight) == 'S') ||
 		(matrix.Get(topLeft) == 'S' && matrix.Get(bottomRight) == 'M')
 }
