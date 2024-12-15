@@ -112,7 +112,7 @@ func (s *Day06Solution) countLoops(labMap util.Matrix[rune], guardPos util.Vecto
 // isLooping returns true if the guard is looping in the labMap, false otherwise. An error is returned
 // if there is a problem moving the guard.
 func (s *Day06Solution) isLooping(labMap util.Matrix[rune], guardPos util.Vector) (bool, error) {
-	seenTurns := make(map[util.Vector]Direction)
+	seenTurns := make(map[util.Vector]util.Vector)
 	for labMap.PosInBounds(guardPos) {
 		obstacleDirection, ok := seenTurns[guardPos]
 		currentDirection, err := s.getGuardDirection(labMap.Get(guardPos))
@@ -175,23 +175,23 @@ func isObstacle(r rune) bool {
 
 // isGuard returns true if r is '^', 'v', '<', or '>'
 func isGuard(r rune) bool {
-	_, ok := guardPositions[r]
+	_, ok := guardDirections[r]
 	return ok
 }
 
 // getGuardDirection returns the direction of the guard represented by r, or an
 // error if r is not a guard.
-func (s *Day06Solution) getGuardDirection(r rune) (Direction, error) {
-	Vector, ok := guardPositions[r]
+func (s *Day06Solution) getGuardDirection(r rune) (util.Vector, error) {
+	vector, ok := guardDirections[r]
 	if !ok {
-		return -1, fmt.Errorf("rune %c is not a guard", r)
+		return util.NewVector(0, 0), fmt.Errorf("rune %c is not a guard", r)
 	}
-	return Vector, nil
+	return vector, nil
 }
 
 func (s *Day06Solution) getNextVector(currentPos util.Vector, guard rune) (util.Vector, error) {
 	d, err := s.getGuardDirection(guard)
-	return currentPos.Add(unitVectors[d]), err
+	return currentPos.Add(d), err
 }
 
 // getRightTurn returns the direction the guard should turn to if it encounters
