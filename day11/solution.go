@@ -1,6 +1,7 @@
-// Advent of Code: Day 11
+// Advent of Code, 2024, Day 11
 //
 // https://adventofcode.com/2024/day/11
+//
 // Part 1: Initially, I implemented the problem using slices. I'd iterate
 // over the stones, and apply the rules to each stone. This worked fine for
 // part 1, but became a problem in part 2.
