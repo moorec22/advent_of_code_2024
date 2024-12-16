@@ -120,7 +120,7 @@ func (s *Day04Solution) countXmases(matrix util.Matrix[rune]) int {
 }
 
 // isXmasCenter returns true if the given Vector is the center of an X-MAS.
-func (s *Day04Solution) isXmasCenter(p util.Vector, matrix util.Matrix[rune]) bool {
+func (s *Day04Solution) isXmasCenter(p *util.Vector, matrix util.Matrix[rune]) bool {
 	if matrix.Get(p) != 'A' {
 		return false
 	}
@@ -132,7 +132,7 @@ func (s *Day04Solution) isXmasCenter(p util.Vector, matrix util.Matrix[rune]) bo
 
 // isLeftDiagonalXmasCenter returns true if the given Vector has an M and an S,
 // in either order, at matrix[i-1][j-1] and matrix[i+1][j+1].
-func (s *Day04Solution) isLeftDiagonalXmasCenter(p util.Vector, matrix util.Matrix[rune]) bool {
+func (s *Day04Solution) isLeftDiagonalXmasCenter(p *util.Vector, matrix util.Matrix[rune]) bool {
 	topRight := util.NewVector(p.X-1, p.Y-1)
 	bottomLeft := util.NewVector(p.X+1, p.Y+1)
 	return (matrix.Get(topRight) == 'M' && matrix.Get(bottomLeft) == 'S') ||
@@ -141,7 +141,7 @@ func (s *Day04Solution) isLeftDiagonalXmasCenter(p util.Vector, matrix util.Matr
 
 // isRightDiagonalXmasCenter returns true if the given Vector has an M and an S,
 // in either order, at matrix[i-1][j+1] and matrix[i+1][j-1].
-func (s *Day04Solution) isRightDiagonalXmasCenter(p util.Vector, matrix util.Matrix[rune]) bool {
+func (s *Day04Solution) isRightDiagonalXmasCenter(p *util.Vector, matrix util.Matrix[rune]) bool {
 	topLeft := util.NewVector(p.X-1, p.Y+1)
 	bottomRight := util.NewVector(p.X+1, p.Y-1)
 	return (matrix.Get(topLeft) == 'M' && matrix.Get(bottomRight) == 'S') ||

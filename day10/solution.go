@@ -55,7 +55,7 @@ func (s *Day10Solution) countReachablePeaks(trailMap util.Matrix[rune], unique b
 // no matter how many ways there are to reach it. Otherwise, all trails are
 // counted.
 func (s *Day10Solution) countReachablePeaksFrom(trailMap util.Matrix[rune],
-	p util.Vector, unique bool) int {
+	p *util.Vector, unique bool) int {
 	reachablePeaks := s.getEndOfTrailsFrom(trailMap, p)
 	if unique {
 		return s.countUnique(reachablePeaks)
@@ -65,12 +65,12 @@ func (s *Day10Solution) countReachablePeaksFrom(trailMap util.Matrix[rune],
 }
 
 // countTrailEndsFrom returns the ending position for every trail reachable from p.
-func (s *Day10Solution) getEndOfTrailsFrom(trailMap util.Matrix[rune], p util.Vector) []util.Vector {
+func (s *Day10Solution) getEndOfTrailsFrom(trailMap util.Matrix[rune], p *util.Vector) []*util.Vector {
 	elevation := trailMap.Get(p)
 	if elevation == Peak {
-		return []util.Vector{p}
+		return []*util.Vector{p}
 	}
-	reachablePeaks := make([]util.Vector, 0)
+	reachablePeaks := make([]*util.Vector, 0)
 	for _, dir := range util.SimpleDirections {
 		newPos := p.Add(dir)
 		if trailMap.PosInBounds(newPos) && trailMap.Get(newPos) == elevation+1 {
@@ -80,8 +80,8 @@ func (s *Day10Solution) getEndOfTrailsFrom(trailMap util.Matrix[rune], p util.Ve
 	return reachablePeaks
 }
 
-func (s *Day10Solution) countUnique(positions []util.Vector) int {
-	unique := make(map[util.Vector]bool)
+func (s *Day10Solution) countUnique(positions []*util.Vector) int {
+	unique := make(map[*util.Vector]bool)
 	for _, p := range positions {
 		unique[p] = true
 	}

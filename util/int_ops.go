@@ -15,3 +15,8 @@ func GreatestCommonDivisor(a, b int) int {
 	}
 	return GreatestCommonDivisor(b, a%b)
 }
+
+// MathModulo returns the mathematical modulo of two integers.
+func MathModulo(a, b int) int {
+	return (a%b + b) % b
+}

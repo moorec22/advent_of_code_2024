@@ -78,7 +78,7 @@ func (s *Day12Solution) getFencingPriceWithDiscount(gardenSquareMap util.Matrix[
 // problem, the permiter is the number of sides of the region that are adjacent
 // to the edge of the garden or different garden plots, and the area is the
 // total number of squares in the plot.
-func (s *Day12Solution) getFencingAreaAndPerimiter(gardenMap util.Matrix[GardenSquare], p util.Vector) (int, int) {
+func (s *Day12Solution) getFencingAreaAndPerimiter(gardenMap util.Matrix[GardenSquare], p *util.Vector) (int, int) {
 	currentSquare := gardenMap.Get(p)
 	if currentSquare.visited {
 		return 0, 0
@@ -102,7 +102,7 @@ func (s *Day12Solution) getFencingAreaAndPerimiter(gardenMap util.Matrix[GardenS
 
 // getFencingAreaAndCorners returns the area and number of corners of the
 // remaining part of the region starting at p that is unvisited.
-func (s *Day12Solution) getFencingAreaAndCorners(gardenMap util.Matrix[GardenSquare], p util.Vector) (int, int) {
+func (s *Day12Solution) getFencingAreaAndCorners(gardenMap util.Matrix[GardenSquare], p *util.Vector) (int, int) {
 	currentSquare := gardenMap.Get(p)
 	if currentSquare.visited {
 		return 0, 0
