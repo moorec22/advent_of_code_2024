@@ -19,3 +19,4 @@ var (
 var SimpleDirections = []*Vector{UpDirection, RightDirection, DownDirection, LeftDirection}
 var AllDirections = []*Vector{UpDirection, UpRightDirection, RightDirection, DownRightDirection,
 	DownDirection, DownLeftDirection, LeftDirection, UpLeftDirection}
+var VerticalDirections = []*Vector{UpDirection, DownDirection}

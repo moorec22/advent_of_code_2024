@@ -12,7 +12,9 @@ var RuneDirections = map[rune]*util.Vector{
 }
 
 const (
-	EmptyRune = '.'
-	WallRune  = '#'
-	BoxRune   = 'O'
+	EmptyRune        = '.'
+	WallRune         = '#'
+	BoxRune          = 'O'
+	WideBoxLeftRune  = '['
+	WideBoxRightRune = ']'
 )
