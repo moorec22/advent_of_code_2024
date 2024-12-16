@@ -15,6 +15,7 @@ import (
 	"advent/day12"
 	"advent/day13"
 	"advent/day14"
+	"advent/day15"
 	"advent/util"
 	"flag"
 	"fmt"
@@ -99,6 +100,7 @@ var SolutionFactories = map[int]SolutionFactory{
 	12: Day12SolutionFactory,
 	13: Day13SolutionFactory,
 	14: Day14SolutionFactory,
+	15: Day15SolutionFactory,
 }
 
 func Day01SolutionFactory(filepath string) (util.Solution, error) {
@@ -155,4 +157,8 @@ func Day13SolutionFactory(filepath string) (util.Solution, error) {
 
 func Day14SolutionFactory(filepath string) (util.Solution, error) {
 	return day14.NewDay14Solution(filepath)
+}
+
+func Day15SolutionFactory(filepath string) (util.Solution, error) {
+	return day15.NewDay15Solution(filepath)
 }

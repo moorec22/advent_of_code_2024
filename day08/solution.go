@@ -28,7 +28,7 @@ type Day08Solution struct {
 }
 
 func NewDay08Solution(filepath string) (*Day08Solution, error) {
-	cityMap, err := util.ParseMatrix(filepath, func(r rune) rune {
+	cityMap, err := util.ParseMatrixFromFile(filepath, func(r rune) rune {
 		return r
 	})
 	if err != nil {

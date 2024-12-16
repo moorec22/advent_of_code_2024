@@ -80,6 +80,7 @@ func (s *Day14Solution) christmasTreeSteps(robotInfos []*RobotInfo) int {
 		steps++
 		robotInfos = newRobotInfos
 	}
+	printState(robotInfos)
 	return steps
 }
 
@@ -100,7 +101,7 @@ func (s *Day14Solution) getSafetyFactor(robotInfos []*RobotInfo) int {
 			quadrantCounts[quadrant]++
 		}
 	}
-	return s.sliceProduct(quadrantCounts)
+	return util.SliceProduct(quadrantCounts)
 }
 
 // getQuadrant returns the quadrant of a given position. If the position is on
@@ -119,15 +120,6 @@ func (s *Day14Solution) getQuadrant(pos *util.Vector) int {
 		return 3
 	}
 	return -1
-}
-
-// sliceProduct returns the product of all the numbers in a slice.
-func (s *Day14Solution) sliceProduct(slice []int) int {
-	product := 1
-	for _, num := range slice {
-		product *= num
-	}
-	return product
 }
 
 // getRobotStartingInfo returns a RobotInfo struct from a line of input.

@@ -26,6 +26,17 @@ func (m Matrix[T]) PosInBounds(pos *Vector) bool {
 	return pos.X >= 0 && pos.X < len(m) && pos.Y >= 0 && pos.Y < len((m)[0])
 }
 
+// Copy copies the matrix and returns a new matrix with the same values. It
+// does not do a deep copy of the values T in each cell.
+func (m Matrix[T]) Copy() Matrix[T] {
+	newMatrix := make([][]T, len(m))
+	for i, row := range m {
+		newMatrix[i] = make([]T, len(row))
+		copy(newMatrix[i], row)
+	}
+	return newMatrix
+}
+
 // Print prints the matrix to the console.
 func (m Matrix[T]) Print(toString func(T) string) {
 	for _, row := range m {

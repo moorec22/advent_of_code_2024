@@ -30,7 +30,7 @@ type Day12Solution struct {
 }
 
 func NewDay12Solution(filepath string) (*Day12Solution, error) {
-	gardenMap, err := util.ParseMatrix(filepath, func(r rune) rune {
+	gardenMap, err := util.ParseMatrixFromFile(filepath, func(r rune) rune {
 		return r
 	})
 	return &Day12Solution{gardenMap}, err
