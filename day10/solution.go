@@ -21,7 +21,7 @@ type Day10Solution struct {
 }
 
 func NewDay10Solution(filepath string) (*Day10Solution, error) {
-	trailMap, err := util.ParseMatrix(filepath, func(r rune) rune {
+	trailMap, err := util.ParseMatrixFromFile(filepath, func(r rune) rune {
 		return r
 	})
 	return &Day10Solution{trailMap}, err
