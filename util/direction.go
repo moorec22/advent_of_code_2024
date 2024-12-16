@@ -16,6 +16,6 @@ var (
 )
 
 // Directions are ordered in a clockwise manner starting from UpDirection.
-var SimpleDirections = []Vector{UpDirection, RightDirection, DownDirection, LeftDirection}
-var AllDirections = []Vector{UpDirection, UpRightDirection, RightDirection, DownRightDirection,
+var SimpleDirections = []*Vector{UpDirection, RightDirection, DownDirection, LeftDirection}
+var AllDirections = []*Vector{UpDirection, UpRightDirection, RightDirection, DownRightDirection,
 	DownDirection, DownLeftDirection, LeftDirection, UpLeftDirection}

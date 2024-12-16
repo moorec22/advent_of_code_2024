@@ -25,7 +25,7 @@ import (
 
 type Day06Solution struct {
 	initialLabMap      util.Matrix[rune]
-	initialGuardVector util.Vector
+	initialGuardVector *util.Vector
 }
 
 func NewDay06Solution(filepath string) (*Day06Solution, error) {
@@ -53,12 +53,12 @@ func (s *Day06Solution) PartTwoAnswer() (int, error) {
 // getLabMapAndGuard returns the lab map and the guard's Vector in the map,
 // or an error if the file cannot be processed. The file is in the format
 // described in the prompt.
-func getLabMapAndGuard(filename string) (util.Matrix[rune], util.Vector, error) {
+func getLabMapAndGuard(filename string) (util.Matrix[rune], *util.Vector, error) {
 	labMap, err := util.ParseMatrix(filename, func(r rune) rune {
 		return r
 	})
 	if err != nil {
-		return labMap, util.Vector{}, err
+		return labMap, &util.Vector{}, err
 	}
 	for i, X := range labMap {
 		for j, r := range X {
@@ -67,14 +67,14 @@ func getLabMapAndGuard(filename string) (util.Matrix[rune], util.Vector, error) 
 			}
 		}
 	}
-	return labMap, util.Vector{}, fmt.Errorf("no guard found in lab map")
+	return labMap, &util.Vector{}, fmt.Errorf("no guard found in lab map")
 }
 
 // trackGuard returns all known locations the guard visits on their path. It is not
 // guaranteed that labMap will be unchanged by this function.
-func (s *Day06Solution) trackGuard(labMap util.Matrix[rune], guardPos util.Vector) (map[util.Vector]bool, error) {
+func (s *Day06Solution) trackGuard(labMap util.Matrix[rune], guardPos *util.Vector) (map[*util.Vector]bool, error) {
 	var err error
-	seenVectors := make(map[util.Vector]bool)
+	seenVectors := make(map[*util.Vector]bool)
 	for labMap.PosInBounds(guardPos) {
 		if _, ok := seenVectors[guardPos]; !ok {
 			seenVectors[guardPos] = true
@@ -90,7 +90,7 @@ func (s *Day06Solution) trackGuard(labMap util.Matrix[rune], guardPos util.Vecto
 // countLoops returns the number of obstacles that would cause the guard to loop. It needs the lab map,
 // the starting Vector of the guard, and all Vectors the guard is seen at on her original path.
 // It is not guaranteed that labMap will be unchanged by this function.
-func (s *Day06Solution) countLoops(labMap util.Matrix[rune], guardPos util.Vector, seenVectors map[util.Vector]bool) (int, error) {
+func (s *Day06Solution) countLoops(labMap util.Matrix[rune], guardPos *util.Vector, seenVectors map[*util.Vector]bool) (int, error) {
 	delete(seenVectors, guardPos)
 	guard := labMap.Get(guardPos)
 	obstacleVectorCount := 0
@@ -111,8 +111,8 @@ func (s *Day06Solution) countLoops(labMap util.Matrix[rune], guardPos util.Vecto
 
 // isLooping returns true if the guard is looping in the labMap, false otherwise. An error is returned
 // if there is a problem moving the guard.
-func (s *Day06Solution) isLooping(labMap util.Matrix[rune], guardPos util.Vector) (bool, error) {
-	seenTurns := make(map[util.Vector]util.Vector)
+func (s *Day06Solution) isLooping(labMap util.Matrix[rune], guardPos *util.Vector) (bool, error) {
+	seenTurns := make(map[*util.Vector]*util.Vector)
 	for labMap.PosInBounds(guardPos) {
 		obstacleDirection, ok := seenTurns[guardPos]
 		currentDirection, err := s.getGuardDirection(labMap.Get(guardPos))
@@ -136,7 +136,7 @@ func (s *Day06Solution) isLooping(labMap util.Matrix[rune], guardPos util.Vector
 // moveToNextVector moves the guard to the next Vector in the labMap. If the
 // guard encounters an obstacle, she turns right and steps one forward. Otherwise,
 // she steps one forward in the direction she is currently moving.
-func (s *Day06Solution) moveToNextVector(labMap util.Matrix[rune], guardPos util.Vector) (util.Vector, error) {
+func (s *Day06Solution) moveToNextVector(labMap util.Matrix[rune], guardPos *util.Vector) (*util.Vector, error) {
 	guard := labMap.Get(guardPos)
 	nextVector, err := s.getNextVector(guardPos, guard)
 	if err != nil {
@@ -159,7 +159,7 @@ func (s *Day06Solution) moveToNextVector(labMap util.Matrix[rune], guardPos util
 }
 
 // isInFrontOfObstacle returns true if the guard is in front of an obstacle in the labMap.
-func (s *Day06Solution) isInFrontOfObstacle(labMap util.Matrix[rune], guardPos util.Vector) bool {
+func (s *Day06Solution) isInFrontOfObstacle(labMap util.Matrix[rune], guardPos *util.Vector) bool {
 	guard := labMap.Get(guardPos)
 	nextPos, err := s.getNextVector(guardPos, guard)
 	if err != nil {
@@ -181,7 +181,7 @@ func isGuard(r rune) bool {
 
 // getGuardDirection returns the direction of the guard represented by r, or an
 // error if r is not a guard.
-func (s *Day06Solution) getGuardDirection(r rune) (util.Vector, error) {
+func (s *Day06Solution) getGuardDirection(r rune) (*util.Vector, error) {
 	vector, ok := guardDirections[r]
 	if !ok {
 		return util.NewVector(0, 0), fmt.Errorf("rune %c is not a guard", r)
@@ -189,7 +189,7 @@ func (s *Day06Solution) getGuardDirection(r rune) (util.Vector, error) {
 	return vector, nil
 }
 
-func (s *Day06Solution) getNextVector(currentPos util.Vector, guard rune) (util.Vector, error) {
+func (s *Day06Solution) getNextVector(currentPos *util.Vector, guard rune) (*util.Vector, error) {
 	d, err := s.getGuardDirection(guard)
 	return currentPos.Add(d), err
 }

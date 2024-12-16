@@ -6,7 +6,7 @@ import "advent/util"
 const Empty = '.'
 const Obstacle = '#'
 
-var guardDirections = map[rune]util.Vector{
+var guardDirections = map[rune]*util.Vector{
 	'^': util.UpDirection,
 	'>': util.RightDirection,
 	'v': util.DownDirection,

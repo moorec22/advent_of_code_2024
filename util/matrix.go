@@ -12,17 +12,17 @@ func NewMatrix[T any]() Matrix[T] {
 }
 
 // Get returns the value at the given vector in the matrix.
-func (m Matrix[T]) Get(pos Vector) T {
+func (m Matrix[T]) Get(pos *Vector) T {
 	return m[pos.X][pos.Y]
 }
 
 // Set sets the value at the given vector in the matrix.
-func (m Matrix[T]) Set(pos Vector, val T) {
+func (m Matrix[T]) Set(pos *Vector, val T) {
 	m[pos.X][pos.Y] = val
 }
 
 // PosInBounds returns true if the given vector is within the bounds of the matrix.
-func (m Matrix[T]) PosInBounds(pos Vector) bool {
+func (m Matrix[T]) PosInBounds(pos *Vector) bool {
 	return pos.X >= 0 && pos.X < len(m) && pos.Y >= 0 && pos.Y < len((m)[0])
 }
 
