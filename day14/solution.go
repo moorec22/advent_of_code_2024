@@ -80,6 +80,7 @@ func (s *Day14Solution) christmasTreeSteps(robotInfos []*RobotInfo) int {
 		steps++
 		robotInfos = newRobotInfos
 	}
+	printState(robotInfos)
 	return steps
 }
 
