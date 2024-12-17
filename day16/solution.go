@@ -68,23 +68,27 @@ func (s *Day16Solution) findCellCount() (int, error) {
 // findLeastCostHelper fills in mazeSearch with the least cost to reach each
 // cell, facing each direction. It returns an error if the search fails.
 func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], start, end, dir *util.Vector, visited map[util.Vector]bool, curCost int) error {
-	foundCost, ok := mazeSearch.Get(start).foundCosts[*dir]
+	foundCosts := mazeSearch.Get(start).foundCosts
 	if start.Equals(end) {
-		if !ok || curCost < foundCost {
+		if foundCost, err := s.mapMin(foundCosts); err != nil || curCost < foundCost {
 			mazeSearch.Get(start).foundCosts[*dir] = curCost
 		}
 		return nil
-	} else if ok && curCost >= foundCost {
+	} else if foundCost, ok := foundCosts[*dir]; ok && curCost >= foundCost {
+		return nil
+	} else if visited[*start] {
 		return nil
 	}
 	mazeSearch.Get(start).foundCosts[*dir] = curCost
 	// let's first try moving forward
 	newPos := start.Add(dir)
 	if mazeSearch.Get(newPos).sym != WallRune {
+		visited[*start] = true
 		err := s.findLeastCostHelper(mazeSearch, newPos, end, dir, visited, curCost+MoveCost)
 		if err != nil {
 			return err
 		}
+		visited[*start] = false
 	}
 	// and then try turning
 	leftTurn, err := s.getLeftTurn(dir)
@@ -104,61 +108,6 @@ func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], st
 		return err
 	}
 	return nil
-}
-
-// getNeighbors returns the neighbors of the current position that can be moved
-// to. A position can be moved to if it is an empty position in front of, to the
-// right, or to the left of pos facing curDir. An error is returend if curDir is
-// not a simple direction.
-func (s *Day16Solution) getNeighbors(mazeSearch util.Matrix[CellInfo], pos, curDir *util.Vector) (map[*util.Vector]*util.Vector, error) {
-	validDirections, err := s.getValidDirections(curDir)
-	if err != nil {
-		return nil, err
-	}
-	neighbors := make(map[*util.Vector]*util.Vector)
-	for _, d := range validDirections {
-		newPos := pos.Add(d)
-		if mazeSearch.Get(newPos).sym != WallRune {
-			neighbors[d] = newPos
-		}
-	}
-	return neighbors, nil
-}
-
-// getValidDirections returns the valid directions that can be moved to from the
-// current direction. Valid directions are all directions other than the cardinal
-// opposite of curDirection. An error is returned if curDirection is not a simple
-// direction.
-func (s *Day16Solution) getValidDirections(curDirection *util.Vector) ([]*util.Vector, error) {
-	validDirections := make([]*util.Vector, 0)
-	oppositeDirection, err := s.getOppositeDirection(curDirection)
-	if err != nil {
-		return nil, err
-	}
-	for _, d := range util.SimpleDirections {
-		if d != oppositeDirection {
-			validDirections = append(validDirections, d)
-		}
-	}
-	return validDirections, nil
-}
-
-// getOppositeDirection returns the opposite direction of the current
-// direction. If curDirection is not a simple direction, an error is
-// returned.
-func (s *Day16Solution) getOppositeDirection(curDirection *util.Vector) (*util.Vector, error) {
-	switch curDirection {
-	case util.UpDirection:
-		return util.DownDirection, nil
-	case util.DownDirection:
-		return util.UpDirection, nil
-	case util.LeftDirection:
-		return util.RightDirection, nil
-	case util.RightDirection:
-		return util.LeftDirection, nil
-	default:
-		return nil, fmt.Errorf("invalid direction: %v", curDirection)
-	}
 }
 
 // getMazeInfoMap returns a matrix of CellInfo structs, one for each cell in
