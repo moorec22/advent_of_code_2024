@@ -1,11 +1,19 @@
 package util
 
-// intAbs returns the absolute value of a given integer.
+// IntAbs returns the absolute value of a given integer.
 func IntAbs(a int) int {
 	if a < 0 {
 		return -a
 	}
 	return a
+}
+
+// IntMin returns the minimum of two integers.
+func IntMin(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // GreatestCommonDivisor returns the greatest common divisor of two integers.

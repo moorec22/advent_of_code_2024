@@ -28,6 +28,11 @@ func ParseVector(s string) (*Vector, error) {
 	return NewVector(x, y), nil
 }
 
+// Equals returns true if and only if both X and Y of other equals X an dY of v.
+func (v *Vector) Equals(other *Vector) bool {
+	return v.X == other.X && v.Y == other.Y
+}
+
 func (v *Vector) Add(other *Vector) *Vector {
 	return &Vector{X: v.X + other.X, Y: v.Y + other.Y}
 }
