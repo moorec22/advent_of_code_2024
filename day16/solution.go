@@ -27,8 +27,9 @@ type CellInfo struct {
 }
 
 type Day16Solution struct {
-	maze       util.Matrix[rune]
+	maze       util.Matrix[CellInfo]
 	start, end *util.Vector
+	solved     bool
 }
 
 func NewDay16Solution(filename string) (*Day16Solution, error) {
@@ -36,7 +37,8 @@ func NewDay16Solution(filename string) (*Day16Solution, error) {
 		return r
 	})
 	start, end := getStartAndEnd(maze)
-	return &Day16Solution{maze, start, end}, err
+	mazeInfo := getMazeInfoMap(maze)
+	return &Day16Solution{mazeInfo, start, end, false}, err
 }
 
 func (s *Day16Solution) PartOneAnswer() (int, error) {
@@ -49,20 +51,26 @@ func (s *Day16Solution) PartTwoAnswer() (int, error) {
 
 // findLeastCost returns the least cost to reach the end cell from the start.
 func (s *Day16Solution) findLeastCost() (int, error) {
-	mazeInfo := s.getMazeInfoMap()
-	err := s.findLeastCostHelper(mazeInfo, s.start, s.end, util.RightDirection, make(map[util.Vector]bool), 0)
-	if err != nil {
-		return -1, err
+	if !s.solved {
+		err := s.findLeastCostHelper(s.maze, s.start, s.end, util.RightDirection, make(map[util.Vector]bool), 0)
+		if err != nil {
+			return -1, err
+		}
+		s.solved = true
 	}
-	cost, err := s.mapMin(mazeInfo.Get(s.end).foundCosts)
+	cost, err := s.mapMin(s.maze.Get(s.end).foundCosts)
 	return cost, err
 }
 
 // findCellCount returns the number of cells found on any of the least cost paths.
 func (s *Day16Solution) findCellCount() (int, error) {
-	mazeInfo := s.getMazeInfoMap()
-	err := s.findLeastCostHelper(mazeInfo, s.start, s.end, util.RightDirection, make(map[util.Vector]bool), 0)
-	return 0, err
+	if !s.solved {
+		err := s.findLeastCostHelper(s.maze, s.start, s.end, util.RightDirection, make(map[util.Vector]bool), 0)
+		if err != nil {
+			return -1, err
+		}
+	}
+	return 0, nil
 }
 
 // findLeastCostHelper fills in mazeSearch with the least cost to reach each
@@ -108,21 +116,6 @@ func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], st
 		return err
 	}
 	return nil
-}
-
-// getMazeInfoMap returns a matrix of CellInfo structs, one for each cell in
-// the maze. The CellInfo struct contains the rune of the cell, and a map of
-// directions to the least cost found to reach the end from that cell facing
-// that direction.
-func (s *Day16Solution) getMazeInfoMap() util.Matrix[CellInfo] {
-	mazeInfo := make(util.Matrix[CellInfo], len(s.maze))
-	for i, row := range s.maze {
-		mazeInfo[i] = make([]CellInfo, len(row))
-		for j, cell := range row {
-			mazeInfo[i][j] = CellInfo{cell, make(map[util.Vector]int)}
-		}
-	}
-	return mazeInfo
 }
 
 // getLeftTurn returns a new direction that is the result of turning left from
@@ -174,6 +167,21 @@ func (s *Day16Solution) mapMin(m map[util.Vector]int) (int, error) {
 		}
 	}
 	return min, nil
+}
+
+// getMazeInfoMap returns a matrix of CellInfo structs, one for each cell in
+// the maze. The CellInfo struct contains the rune of the cell, and a map of
+// directions to the least cost found to reach the end from that cell facing
+// that direction.
+func getMazeInfoMap(maze util.Matrix[rune]) util.Matrix[CellInfo] {
+	mazeInfo := make(util.Matrix[CellInfo], len(maze))
+	for i, row := range maze {
+		mazeInfo[i] = make([]CellInfo, len(row))
+		for j, cell := range row {
+			mazeInfo[i][j] = CellInfo{cell, make(map[util.Vector]int)}
+		}
+	}
+	return mazeInfo
 }
 
 // getStartAndEnd returns the start and end positions in the maze.
