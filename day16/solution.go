@@ -26,19 +26,23 @@ type CellInfo struct {
 	foundCosts map[util.Vector]int
 }
 
+type SolutionData struct {
+	leastCost   int
+	cellsOnPath map[util.Vector]bool
+}
+
 type Day16Solution struct {
-	maze       util.Matrix[CellInfo]
-	start, end *util.Vector
-	solved     bool
+	maze         util.Matrix[rune]
+	start, end   *util.Vector
+	solutionData *SolutionData
 }
 
 func NewDay16Solution(filename string) (*Day16Solution, error) {
-	maze, err := util.ParseMatrixFromFile[rune](filename, func(r rune) rune {
+	maze, err := util.ParseMatrixFromFile(filename, func(r rune) rune {
 		return r
 	})
 	start, end := getStartAndEnd(maze)
-	mazeInfo := getMazeInfoMap(maze)
-	return &Day16Solution{mazeInfo, start, end, false}, err
+	return &Day16Solution{maze, start, end, nil}, err
 }
 
 func (s *Day16Solution) PartOneAnswer() (int, error) {
@@ -51,38 +55,44 @@ func (s *Day16Solution) PartTwoAnswer() (int, error) {
 
 // findLeastCost returns the least cost to reach the end cell from the start.
 func (s *Day16Solution) findLeastCost() (int, error) {
-	if !s.solved {
-		err := s.findLeastCostHelper(s.maze, s.start, s.end, util.RightDirection, make(map[util.Vector]bool), 0)
+	if s.solutionData == nil {
+		err := s.solve()
 		if err != nil {
 			return -1, err
 		}
-		s.solved = true
 	}
-	cost, err := s.mapMin(s.maze.Get(s.end).foundCosts)
-	return cost, err
+	return s.solutionData.leastCost, nil
 }
 
 // findCellCount returns the number of cells found on any of the least cost paths.
 func (s *Day16Solution) findCellCount() (int, error) {
-	if !s.solved {
-		err := s.findLeastCostHelper(s.maze, s.start, s.end, util.RightDirection, make(map[util.Vector]bool), 0)
+	if s.solutionData == nil {
+		err := s.solve()
 		if err != nil {
 			return -1, err
 		}
 	}
-	return 0, nil
+	return s.cellsOnPath()
 }
 
-// findLeastCostHelper fills in mazeSearch with the least cost to reach each
+func (s *Day16Solution) solve() error {
+	mazeInfo := s.getMazeInfoMap(s.maze)
+	return s.findLeastCostHelper(mazeInfo, s.start, s.end, util.RightDirection, make(map[util.Vector]bool), 0)
+}
+
+// findLeastCostHelper fills in s.solutionData with the least cost to reach each
 // cell, facing each direction. It returns an error if the search fails.
 func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], start, end, dir *util.Vector, visited map[util.Vector]bool, curCost int) error {
 	foundCosts := mazeSearch.Get(start).foundCosts
 	if start.Equals(end) {
-		if foundCost, err := s.mapMin(foundCosts); err != nil || curCost < foundCost {
-			mazeSearch.Get(start).foundCosts[*dir] = curCost
+		visited[*start] = true
+		if s.solutionData == nil || curCost < s.solutionData.leastCost {
+			s.solutionData = &SolutionData{curCost, s.copiedSet(visited)}
+		} else if curCost == s.solutionData.leastCost {
+			s.solutionData.cellsOnPath = s.combinedSets(s.solutionData.cellsOnPath, visited)
 		}
 		return nil
-	} else if foundCost, ok := foundCosts[*dir]; ok && curCost >= foundCost {
+	} else if foundCost, ok := foundCosts[*dir]; ok && curCost > foundCost {
 		return nil
 	} else if visited[*start] {
 		return nil
@@ -154,26 +164,45 @@ func (s *Day16Solution) getRightTurn(dir *util.Vector) (*util.Vector, error) {
 	}
 }
 
-// mapMin returns the minimum value found in the map. It returns an error if
-// the map is empty.
-func (s *Day16Solution) mapMin(m map[util.Vector]int) (int, error) {
-	if len(m) == 0 {
-		return -1, fmt.Errorf("no minimum found")
+func (s *Day16Solution) cellsOnPath() (int, error) {
+	if s.solutionData == nil {
+		return -1, fmt.Errorf("solution data not found")
 	}
-	min := -1
-	for _, cost := range m {
-		if min < 0 || cost < min {
-			min = cost
+	trueCount := 0
+	for _, onPath := range s.solutionData.cellsOnPath {
+		if onPath {
+			trueCount++
 		}
 	}
-	return min, nil
+	return trueCount, nil
+}
+
+// copiedSet returns a copy of the given set.
+func (s *Day16Solution) copiedSet(set map[util.Vector]bool) map[util.Vector]bool {
+	copied := make(map[util.Vector]bool)
+	for k, v := range set {
+		copied[k] = v
+	}
+	return copied
+}
+
+// combinedSets takes two sets, and returns the combination of the two.
+func (s *Day16Solution) combinedSets(set1, set2 map[util.Vector]bool) map[util.Vector]bool {
+	combined := make(map[util.Vector]bool)
+	for k, v := range set1 {
+		combined[k] = v
+	}
+	for k, v := range set2 {
+		combined[k] = v
+	}
+	return combined
 }
 
 // getMazeInfoMap returns a matrix of CellInfo structs, one for each cell in
 // the maze. The CellInfo struct contains the rune of the cell, and a map of
 // directions to the least cost found to reach the end from that cell facing
 // that direction.
-func getMazeInfoMap(maze util.Matrix[rune]) util.Matrix[CellInfo] {
+func (s *Day16Solution) getMazeInfoMap(maze util.Matrix[rune]) util.Matrix[CellInfo] {
 	mazeInfo := make(util.Matrix[CellInfo], len(maze))
 	for i, row := range maze {
 		mazeInfo[i] = make([]CellInfo, len(row))
