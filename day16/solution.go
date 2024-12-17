@@ -7,7 +7,8 @@
 // Namely, if we keep track of the least cost we've found to get to the end, we
 // can save ourselves the trouble of trying a path we already know to be more
 // expensive. This by definition will truncate the long running paths, and
-// greatly improve preformance time.
+// greatly improve preformance time. With this optimization, I was able to find
+// the answer.
 package day16
 
 import (
@@ -43,47 +44,59 @@ func (s *Day16Solution) PartOneAnswer() (int, error) {
 }
 
 func (s *Day16Solution) PartTwoAnswer() (int, error) {
-	return 0, nil
+	return s.findCellCount()
 }
 
-// findLeastCostPath returns the least cost to reach the end cell from the start.
+// findLeastCost returns the least cost to reach the end cell from the start.
 func (s *Day16Solution) findLeastCost() (int, error) {
 	mazeInfo := s.getMazeInfoMap()
-	return s.findLeastCostHelper(mazeInfo, s.start, s.end, util.RightDirection, make(map[util.Vector]bool))
+	err := s.findLeastCostHelper(mazeInfo, s.start, s.end, util.RightDirection, make(map[util.Vector]bool), 0)
+	if err != nil {
+		return -1, err
+	}
+	cost, err := s.mapMin(mazeInfo.Get(s.end).foundCosts)
+	return cost, err
 }
 
-// findLeastCostHelper fills in mazeSearch with the least cost to reach each cell.
-func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], start, end, dir *util.Vector, visited map[util.Vector]bool) (int, error) {
+// findCellCount returns the number of cells found on any of the least cost paths.
+func (s *Day16Solution) findCellCount() (int, error) {
+	mazeInfo := s.getMazeInfoMap()
+	err := s.findLeastCostHelper(mazeInfo, s.start, s.end, util.RightDirection, make(map[util.Vector]bool), 0)
+	return 0, err
+}
+
+// findLeastCostHelper fills in mazeSearch with the least cost to reach each
+// cell, facing each direction. It returns an error if the search fails.
+func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], start, end, dir *util.Vector, visited map[util.Vector]bool, curCost int) error {
+	foundCost, ok := mazeSearch.Get(start).foundCosts[*dir]
 	if start.Equals(end) {
-		return 0, nil
+		if !ok || curCost < foundCost {
+			mazeSearch.Get(start).foundCosts[*dir] = curCost
+		}
+		return nil
+	} else if ok && curCost >= foundCost {
+		return nil
 	}
 	if visited[*start] {
-		return -1, nil
+		return nil
 	}
 	visited[*start] = true
 	neighbors, err := s.getNeighbors(mazeSearch, start, dir)
 	if err != nil {
-		return -1, err
+		return err
 	}
-	leastCost := -1
 	for d, n := range neighbors {
-		newCost, err := s.findLeastCostHelper(mazeSearch, n, end, d, visited)
-		if err != nil {
-			return -1, err
-		}
-		if newCost < 0 {
-			continue
-		}
-		cost := MoveCost + newCost
+		cost := MoveCost
 		if !d.Equals(dir) {
 			cost += TurnCost
 		}
-		if leastCost < 0 || cost < leastCost {
-			leastCost = cost
+		err := s.findLeastCostHelper(mazeSearch, n, end, d, visited, curCost+cost)
+		if err != nil {
+			return err
 		}
 	}
 	visited[*start] = false
-	return leastCost, nil
+	return nil
 }
 
 // getNeighbors returns the neighbors of the current position that can be moved
@@ -141,6 +154,10 @@ func (s *Day16Solution) getOppositeDirection(curDirection *util.Vector) (*util.V
 	}
 }
 
+// getMazeInfoMap returns a matrix of CellInfo structs, one for each cell in
+// the maze. The CellInfo struct contains the rune of the cell, and a map of
+// directions to the least cost found to reach the end from that cell facing
+// that direction.
 func (s *Day16Solution) getMazeInfoMap() util.Matrix[CellInfo] {
 	mazeInfo := make(util.Matrix[CellInfo], len(s.maze))
 	for i, row := range s.maze {
@@ -165,6 +182,21 @@ func getStartAndEnd(maze util.Matrix[rune]) (*util.Vector, *util.Vector) {
 		}
 	}
 	return start, end
+}
+
+// mapMin returns the minimum value found in the map. It returns an error if
+// the map is empty.
+func (s *Day16Solution) mapMin(m map[util.Vector]int) (int, error) {
+	if len(m) == 0 {
+		return -1, fmt.Errorf("no minimum found")
+	}
+	min := -1
+	for _, cost := range m {
+		if min < 0 || cost < min {
+			min = cost
+		}
+	}
+	return min, nil
 }
 
 func printPath(maze util.Matrix[rune], path map[util.Vector]bool) {
