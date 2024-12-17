@@ -9,6 +9,9 @@
 // expensive. This by definition will truncate the long running paths, and
 // greatly improve preformance time. With this optimization, I was able to find
 // the answer.
+//
+// Part 2: I decided to make a solution data structure, to store the solution.
+// Though not very fast, this does work and is readable.
 package day16
 
 import (
@@ -77,19 +80,19 @@ func (s *Day16Solution) findCellCount() (int, error) {
 
 func (s *Day16Solution) solve() error {
 	mazeInfo := s.getMazeInfoMap(s.maze)
-	return s.findLeastCostHelper(mazeInfo, s.start, s.end, util.RightDirection, make(map[util.Vector]bool), 0)
+	return s.findLeastCostHelper(mazeInfo, s.start, s.end, util.RightDirection, make(map[util.Vector]bool), 0, []string{})
 }
 
 // findLeastCostHelper fills in s.solutionData with the least cost to reach each
 // cell, facing each direction. It returns an error if the search fails.
-func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], start, end, dir *util.Vector, visited map[util.Vector]bool, curCost int) error {
+func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], start, end, dir *util.Vector, visited map[util.Vector]bool, curCost int, moves []string) error {
 	foundCosts := mazeSearch.Get(start).foundCosts
 	if start.Equals(end) {
 		visited[*start] = true
 		if s.solutionData == nil || curCost < s.solutionData.leastCost {
-			s.solutionData = &SolutionData{curCost, s.copiedSet(visited)}
+			s.solutionData = &SolutionData{curCost, s.trueSet(visited)}
 		} else if curCost == s.solutionData.leastCost {
-			s.solutionData.cellsOnPath = s.combinedSets(s.solutionData.cellsOnPath, visited)
+			s.solutionData.cellsOnPath = s.combinedTrueSets(s.solutionData.cellsOnPath, visited)
 		}
 		return nil
 	} else if foundCost, ok := foundCosts[*dir]; ok && curCost > foundCost {
@@ -102,7 +105,7 @@ func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], st
 	newPos := start.Add(dir)
 	if mazeSearch.Get(newPos).sym != WallRune {
 		visited[*start] = true
-		err := s.findLeastCostHelper(mazeSearch, newPos, end, dir, visited, curCost+MoveCost)
+		err := s.findLeastCostHelper(mazeSearch, newPos, end, dir, visited, curCost+MoveCost, append(moves, "move"))
 		if err != nil {
 			return err
 		}
@@ -113,7 +116,7 @@ func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], st
 	if err != nil {
 		return err
 	}
-	err = s.findLeastCostHelper(mazeSearch, start, end, leftTurn, visited, curCost+TurnCost)
+	err = s.findLeastCostHelper(mazeSearch, start, end, leftTurn, visited, curCost+TurnCost, append(moves, "left"))
 	if err != nil {
 		return err
 	}
@@ -121,7 +124,7 @@ func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], st
 	if err != nil {
 		return err
 	}
-	err = s.findLeastCostHelper(mazeSearch, start, end, rightTurn, visited, curCost+TurnCost)
+	err = s.findLeastCostHelper(mazeSearch, start, end, rightTurn, visited, curCost+TurnCost, append(moves, "right"))
 	if err != nil {
 		return err
 	}
@@ -178,21 +181,23 @@ func (s *Day16Solution) cellsOnPath() (int, error) {
 }
 
 // copiedSet returns a copy of the given set.
-func (s *Day16Solution) copiedSet(set map[util.Vector]bool) map[util.Vector]bool {
+func (s *Day16Solution) trueSet(set map[util.Vector]bool) map[util.Vector]bool {
 	copied := make(map[util.Vector]bool)
 	for k, v := range set {
-		copied[k] = v
+		if v {
+			copied[k] = v
+		}
 	}
 	return copied
 }
 
 // combinedSets takes two sets, and returns the combination of the two.
-func (s *Day16Solution) combinedSets(set1, set2 map[util.Vector]bool) map[util.Vector]bool {
+func (s *Day16Solution) combinedTrueSets(set1, set2 map[util.Vector]bool) map[util.Vector]bool {
 	combined := make(map[util.Vector]bool)
-	for k, v := range set1 {
+	for k, v := range s.trueSet(set1) {
 		combined[k] = v
 	}
-	for k, v := range set2 {
+	for k, v := range s.trueSet(set2) {
 		combined[k] = v
 	}
 	return combined
