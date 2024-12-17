@@ -77,25 +77,32 @@ func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[CellInfo], st
 	} else if ok && curCost >= foundCost {
 		return nil
 	}
-	if visited[*start] {
-		return nil
-	}
-	visited[*start] = true
-	neighbors, err := s.getNeighbors(mazeSearch, start, dir)
-	if err != nil {
-		return err
-	}
-	for d, n := range neighbors {
-		cost := MoveCost
-		if !d.Equals(dir) {
-			cost += TurnCost
-		}
-		err := s.findLeastCostHelper(mazeSearch, n, end, d, visited, curCost+cost)
+	mazeSearch.Get(start).foundCosts[*dir] = curCost
+	// let's first try moving forward
+	newPos := start.Add(dir)
+	if mazeSearch.Get(newPos).sym != WallRune {
+		err := s.findLeastCostHelper(mazeSearch, newPos, end, dir, visited, curCost+MoveCost)
 		if err != nil {
 			return err
 		}
 	}
-	visited[*start] = false
+	// and then try turning
+	leftTurn, err := s.getLeftTurn(dir)
+	if err != nil {
+		return err
+	}
+	err = s.findLeastCostHelper(mazeSearch, start, end, leftTurn, visited, curCost+TurnCost)
+	if err != nil {
+		return err
+	}
+	rightTurn, err := s.getRightTurn(dir)
+	if err != nil {
+		return err
+	}
+	err = s.findLeastCostHelper(mazeSearch, start, end, rightTurn, visited, curCost+TurnCost)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -169,19 +176,40 @@ func (s *Day16Solution) getMazeInfoMap() util.Matrix[CellInfo] {
 	return mazeInfo
 }
 
-// getStartAndEnd returns the start and end positions in the maze.
-func getStartAndEnd(maze util.Matrix[rune]) (*util.Vector, *util.Vector) {
-	var start, end *util.Vector
-	for i, row := range maze {
-		for j, cell := range row {
-			if cell == 'S' {
-				start = util.NewVector(i, j)
-			} else if cell == 'E' {
-				end = util.NewVector(i, j)
-			}
-		}
+// getLeftTurn returns a new direction that is the result of turning left from
+// the current direction. An error is returned if the current direction is not
+// a simple direction.
+func (s *Day16Solution) getLeftTurn(dir *util.Vector) (*util.Vector, error) {
+	switch dir {
+	case util.UpDirection:
+		return util.LeftDirection, nil
+	case util.DownDirection:
+		return util.RightDirection, nil
+	case util.LeftDirection:
+		return util.DownDirection, nil
+	case util.RightDirection:
+		return util.UpDirection, nil
+	default:
+		return nil, fmt.Errorf("invalid direction: %v", dir)
 	}
-	return start, end
+}
+
+// getRightTurn returns a new direction that is the result of turning right from
+// the current direction. An error is returned if the current direction is not
+// a simple direction.
+func (s *Day16Solution) getRightTurn(dir *util.Vector) (*util.Vector, error) {
+	switch dir {
+	case util.UpDirection:
+		return util.RightDirection, nil
+	case util.DownDirection:
+		return util.LeftDirection, nil
+	case util.LeftDirection:
+		return util.UpDirection, nil
+	case util.RightDirection:
+		return util.DownDirection, nil
+	default:
+		return nil, fmt.Errorf("invalid direction: %v", dir)
+	}
 }
 
 // mapMin returns the minimum value found in the map. It returns an error if
@@ -197,6 +225,21 @@ func (s *Day16Solution) mapMin(m map[util.Vector]int) (int, error) {
 		}
 	}
 	return min, nil
+}
+
+// getStartAndEnd returns the start and end positions in the maze.
+func getStartAndEnd(maze util.Matrix[rune]) (*util.Vector, *util.Vector) {
+	var start, end *util.Vector
+	for i, row := range maze {
+		for j, cell := range row {
+			if cell == 'S' {
+				start = util.NewVector(i, j)
+			} else if cell == 'E' {
+				end = util.NewVector(i, j)
+			}
+		}
+	}
+	return start, end
 }
 
 func printPath(maze util.Matrix[rune], path map[util.Vector]bool) {
