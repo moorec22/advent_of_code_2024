@@ -49,9 +49,10 @@ func (s *Day16Solution) findLeastCost() (int, error) {
 // findLeastCostHelper fills in mazeSearch with the least cost to reach each cell.
 func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[rune], start, end, dir *util.Vector, visited map[util.Vector]bool) (int, error) {
 	if start.Equals(end) {
-		printPath(mazeSearch, visited)
-		fmt.Println()
 		return 0, nil
+	}
+	if visited[*start] {
+		return -1, nil
 	}
 	visited[*start] = true
 	neighbors, err := s.getNeighbors(mazeSearch, start, dir)
@@ -60,14 +61,14 @@ func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[rune], start,
 	}
 	leastCost := -1
 	for d, n := range neighbors {
-		if visited[*n] {
-			continue
-		}
-		cost, err := s.findLeastCostHelper(mazeSearch, n, end, d, visited)
+		newCost, err := s.findLeastCostHelper(mazeSearch, n, end, d, visited)
 		if err != nil {
 			return -1, err
 		}
-		cost += MoveCost
+		if newCost < 0 {
+			continue
+		}
+		cost := MoveCost + newCost
 		if !d.Equals(dir) {
 			cost += TurnCost
 		}
