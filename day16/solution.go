@@ -20,24 +20,6 @@ const TurnCost = 1000
 
 const WallRune = '#'
 
-// MazeCell represents a cell in the maze in the search map. It has a visited
-// flag, and the cost to reach that cell.
-type MazeCell struct {
-	sym rune
-	// the cost to reach this cell facing the direction of the key
-	dirCost map[*util.Vector]int
-	visited bool
-	// the final cost, only to be used by the end cell.
-	endCost int
-}
-
-// MoveInfo represents the position to move to, the direction it is in, and
-// the cost to move there.
-type MoveInfo struct {
-	cost     int
-	pos, dir *util.Vector
-}
-
 type Day16Solution struct {
 	maze       util.Matrix[rune]
 	start, end *util.Vector
@@ -52,7 +34,7 @@ func NewDay16Solution(filename string) (*Day16Solution, error) {
 }
 
 func (s *Day16Solution) PartOneAnswer() (int, error) {
-	return s.findLeastCostPath(), nil
+	return s.findLeastCost()
 }
 
 func (s *Day16Solution) PartTwoAnswer() (int, error) {
@@ -60,47 +42,48 @@ func (s *Day16Solution) PartTwoAnswer() (int, error) {
 }
 
 // findLeastCostPath returns the least cost to reach the end cell from the start.
-func (s *Day16Solution) findLeastCostPath() int {
-	mazeSearch := s.getMazeSearch(s.maze)
-	s.findLeastCostPathHelper(mazeSearch, s.start, s.end, util.RightDirection, 0)
-	return mazeSearch.Get(s.end).endCost
+func (s *Day16Solution) findLeastCost() (int, error) {
+	return s.findLeastCostHelper(s.maze, s.start, s.end, util.RightDirection, make(map[util.Vector]bool))
 }
 
 // findLeastCostHelper fills in mazeSearch with the least cost to reach each cell.
-func (s *Day16Solution) findLeastCostPathHelper(mazeSearch util.Matrix[MazeCell], start, end, dir *util.Vector, cost int) error {
-	cell := mazeSearch.Get(start)
+func (s *Day16Solution) findLeastCostHelper(mazeSearch util.Matrix[rune], start, end, dir *util.Vector, visited map[util.Vector]bool) (int, error) {
 	if start.Equals(end) {
-		if !cell.visited || cost < cell.endCost {
-			cell.endCost = cost
-			mazeSearch.Set(start, cell)
-		}
-		return nil
+		printPath(mazeSearch, visited)
+		fmt.Println()
+		return 0, nil
 	}
+	visited[*start] = true
 	neighbors, err := s.getNeighbors(mazeSearch, start, dir)
 	if err != nil {
-		return nil
+		return -1, err
 	}
-	for newDir, newPos := range neighbors {
-		newCost := cost
-		if newDir != dir {
-			newCost += TurnCost
+	leastCost := -1
+	for d, n := range neighbors {
+		if visited[*n] {
+			continue
 		}
-		v, ok := cell.dirCost[newDir]
-		if !cell.visited || !ok || newCost < v {
-			cell.dirCost[newDir] = newCost
-			cell.visited = true
-			mazeSearch.Set(start, cell)
-			s.findLeastCostPathHelper(mazeSearch, newPos, end, newDir, newCost+MoveCost)
+		cost, err := s.findLeastCostHelper(mazeSearch, n, end, d, visited)
+		if err != nil {
+			return -1, err
+		}
+		cost += MoveCost
+		if !d.Equals(dir) {
+			cost += TurnCost
+		}
+		if leastCost < 0 || cost < leastCost {
+			leastCost = cost
 		}
 	}
-	return nil
+	visited[*start] = false
+	return leastCost, nil
 }
 
 // getNeighbors returns the neighbors of the current position that can be moved
 // to. A position can be moved to if it is an empty position in front of, to the
 // right, or to the left of pos facing curDir. An error is returend if curDir is
 // not a simple direction.
-func (s *Day16Solution) getNeighbors(mazeSearch util.Matrix[MazeCell], pos, curDir *util.Vector) (map[*util.Vector]*util.Vector, error) {
+func (s *Day16Solution) getNeighbors(mazeSearch util.Matrix[rune], pos, curDir *util.Vector) (map[*util.Vector]*util.Vector, error) {
 	validDirections, err := s.getValidDirections(curDir)
 	if err != nil {
 		return nil, err
@@ -108,7 +91,7 @@ func (s *Day16Solution) getNeighbors(mazeSearch util.Matrix[MazeCell], pos, curD
 	neighbors := make(map[*util.Vector]*util.Vector)
 	for _, d := range validDirections {
 		newPos := pos.Add(d)
-		if mazeSearch.Get(newPos).sym != WallRune {
+		if mazeSearch.Get(newPos) != WallRune {
 			neighbors[d] = newPos
 		}
 	}
@@ -151,19 +134,6 @@ func (s *Day16Solution) getOppositeDirection(curDirection *util.Vector) (*util.V
 	}
 }
 
-// getMazeSearch returns a copy of the maze with the cost to reach each cell.
-// The initial MazeCell has a cost of -1, and visited set to false.
-func (s *Day16Solution) getMazeSearch(maze util.Matrix[rune]) util.Matrix[MazeCell] {
-	searchMap := make(util.Matrix[MazeCell], len(maze))
-	for i, row := range maze {
-		searchMap[i] = make([]MazeCell, len(row))
-		for j, sym := range row {
-			searchMap[i][j] = MazeCell{sym, map[*util.Vector]int{}, false, -1}
-		}
-	}
-	return searchMap
-}
-
 // getStartAndEnd returns the start and end positions in the maze.
 func getStartAndEnd(maze util.Matrix[rune]) (*util.Vector, *util.Vector) {
 	var start, end *util.Vector
@@ -177,4 +147,18 @@ func getStartAndEnd(maze util.Matrix[rune]) (*util.Vector, *util.Vector) {
 		}
 	}
 	return start, end
+}
+
+func printPath(maze util.Matrix[rune], path map[util.Vector]bool) {
+	for i, row := range maze {
+		for j, cell := range row {
+			pos := util.NewVector(i, j)
+			if path[*pos] {
+				fmt.Print("X")
+			} else {
+				fmt.Print(string(cell))
+			}
+		}
+		fmt.Println()
+	}
 }
