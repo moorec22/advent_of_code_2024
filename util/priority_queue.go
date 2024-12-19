@@ -1,8 +1,11 @@
 package util
 
-import "cmp"
+// An implementation to be used for structs to be compared.
+type StandardComparable[T any] interface {
+	Compare(T) int
+}
 
-type PriorityQueue[T cmp.Ordered] interface {
+type PriorityQueue[T StandardComparable[T]] interface {
 	// Insert inserts an item into the priority queue
 	Insert(T)
 	// Remove removes the top item from the priority queue.
@@ -13,17 +16,21 @@ type PriorityQueue[T cmp.Ordered] interface {
 	IsEmpty() bool
 }
 
-type ArrayPriorityQueue[T cmp.Ordered] struct {
+type ArrayPriorityQueue[T StandardComparable[T]] struct {
 	data []T
 	size int
 }
 
-func NewArrayPriorityQueue[T cmp.Ordered]() *ArrayPriorityQueue[T] {
+func NewArrayPriorityQueue[T StandardComparable[T]]() *ArrayPriorityQueue[T] {
 	return &ArrayPriorityQueue[T]{make([]T, 0), 0}
 }
 
 func (q *ArrayPriorityQueue[T]) Insert(item T) {
-	q.data = append(q.data, item)
+	if q.size == len(q.data) {
+		q.data = append(q.data, item)
+	} else {
+		q.data[q.size] = item
+	}
 	q.size++
 	q.percolateUp()
 }
@@ -50,7 +57,7 @@ func (q *ArrayPriorityQueue[T]) IsEmpty() bool {
 func (q *ArrayPriorityQueue[T]) percolateUp() {
 	nodeIndex := q.size - 1
 	parentIndex := q.parentIndex(nodeIndex)
-	for nodeIndex > 0 && q.data[nodeIndex] < q.data[parentIndex] {
+	for nodeIndex > 0 && q.data[nodeIndex].Compare(q.data[parentIndex]) < 0 {
 		q.swap(nodeIndex, parentIndex)
 		nodeIndex = parentIndex
 		parentIndex = q.parentIndex(nodeIndex)
@@ -62,10 +69,10 @@ func (q *ArrayPriorityQueue[T]) percolateDown() {
 	leftChild, rightChild := q.childrenIndices(nodeIndex)
 	for {
 		smallestChild := -1
-		if leftChild < q.size && q.data[leftChild] < q.data[nodeIndex] {
+		if leftChild < q.size && q.data[leftChild].Compare(q.data[nodeIndex]) < 0 {
 			smallestChild = leftChild
 		}
-		if rightChild < q.size && q.data[rightChild] < q.data[nodeIndex] && q.data[rightChild] < q.data[leftChild] {
+		if rightChild < q.size && q.data[rightChild].Compare(q.data[nodeIndex]) < 0 && q.data[rightChild].Compare(q.data[leftChild]) < 0 {
 			smallestChild = rightChild
 		}
 		if smallestChild == -1 {
