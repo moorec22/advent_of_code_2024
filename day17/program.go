@@ -27,10 +27,20 @@ func NewProgram(instructions []int, state *ProgramState) *Program {
 	return &Program{Instructions: instructions, State: state}
 }
 
-// Run executes the program and returns the output.
-func (p *Program) Run() ([]int, error) {
+func (p *Program) Copy() *Program {
+	newProgram := NewProgram(p.Instructions, p.State.Copy())
+	return newProgram
+}
+
+// Run executes the program and returns the output. If loop is false, the
+// program will terminate when a JNZ is encountered. Otherwise, the program
+// is run.
+func (p *Program) Run(loop bool) ([]int, error) {
 	output := make([]int, 0)
 	for p.State.InstructionPointer < len(p.Instructions) {
+		if !loop && p.Instructions[p.State.InstructionPointer] == 3 {
+			break
+		}
 		res, err := p.RunSingle()
 		if err != nil {
 			return nil, err
