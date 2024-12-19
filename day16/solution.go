@@ -232,17 +232,3 @@ func getStartAndEnd(maze util.Matrix[rune]) (*util.Vector, *util.Vector) {
 	}
 	return start, end
 }
-
-func printPath(maze util.Matrix[rune], path map[util.Vector]bool) {
-	for i, row := range maze {
-		for j, cell := range row {
-			pos := util.NewVector(i, j)
-			if path[*pos] {
-				fmt.Print("X")
-			} else {
-				fmt.Print(string(cell))
-			}
-		}
-		fmt.Println()
-	}
-}
