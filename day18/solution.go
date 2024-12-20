@@ -6,6 +6,13 @@
 // I used djikstra's algorithm to find the shortest path from the start to the.
 // end. I used a matrix to represent the memory space and a matrix of CellInfo
 // to represent the shortest path to each cell.
+//
+// Part 2 Idea: If we think of the memory map as a graph, the first byte that
+// prevents an exit is the first byte that creates a bipartite graph.
+//
+// Part 2: Maybe there's something to the graph idea, but I decided to start
+// with a simpler solution. Find a path to the end. If a byte falls on that
+// path, find another path. Repeat until a path is not found. This worked!
 package day18
 
 import (
@@ -23,12 +30,12 @@ const ByteCount = 1024
 
 type CellInfo struct {
 	pos          util.Vector
-	shortestPath int
+	shortestPath map[util.Vector]bool
 	sym          rune
 }
 
 func (c CellInfo) Compare(other CellInfo) int {
-	return c.shortestPath - other.shortestPath
+	return len(c.shortestPath) - len(other.shortestPath)
 }
 
 type Day18Solution struct {
@@ -65,24 +72,39 @@ func NewDay18Solution(filename string) (*Day18Solution, error) {
 }
 
 func (s *Day18Solution) PartOneAnswer() (int, error) {
-	s.simulateXBytes(s.memorySpace, ByteCount, s.fallingBytes)
+	s.simulateXBytes(s.memorySpace, 0, ByteCount, s.fallingBytes)
 	start := util.NewVector(0, 0)
 	end := util.NewVector(MemoryWidth-1, MemoryHeight-1)
 	shortestPath := s.findShortestPath(s.memorySpace, start, end)
-	if shortestPath == -1 {
+	if shortestPath == nil {
 		return -1, fmt.Errorf("no path found")
 	}
-	return shortestPath, nil
+	return len(shortestPath), nil
 }
 
 func (s *Day18Solution) PartTwoAnswer() (int, error) {
-	return 0, nil
+	start := util.NewVector(0, 0)
+	end := util.NewVector(MemoryWidth-1, MemoryHeight-1)
+	currentPath := s.findShortestPath(s.memorySpace, start, end)
+	lastByteToFall := 0
+	for i := 0; i < len(s.fallingBytes); i++ {
+		if currentPath[*s.fallingBytes[i]] {
+			s.simulateXBytes(s.memorySpace, lastByteToFall, i+1, s.fallingBytes)
+			lastByteToFall = i
+			currentPath = s.findShortestPath(s.memorySpace, start, end)
+			if currentPath == nil {
+				fmt.Printf("blocking byte: %d,%d\n", s.fallingBytes[i].Y, s.fallingBytes[i].X)
+				return 0, nil
+			}
+		}
+	}
+	return -1, fmt.Errorf("no blocking byte found")
 }
 
-// simulateXBytes simulates the first x bytes from bytes falling into thememry
-// space.
-func (s *Day18Solution) simulateXBytes(memorySpace util.Matrix[rune], x int, bytes []*util.Vector) {
-	for i := 0; i < x; i++ {
+// simulateXBytes simulates the x bytes starting from start to fall into the
+// memory space.
+func (s *Day18Solution) simulateXBytes(memorySpace util.Matrix[rune], start, end int, bytes []*util.Vector) {
+	for i := start; i < end; i++ {
 		position := bytes[i]
 		memorySpace.Set(position, '#')
 	}
@@ -90,11 +112,11 @@ func (s *Day18Solution) simulateXBytes(memorySpace util.Matrix[rune], x int, byt
 
 // findShortestPath finds the shortest path from the start to the end in the
 // memory space.
-func (s *Day18Solution) findShortestPath(memorySpace util.Matrix[rune], start, end *util.Vector) int {
+func (s *Day18Solution) findShortestPath(memorySpace util.Matrix[rune], start, end *util.Vector) map[util.Vector]bool {
 	memorySpaceMap := s.getMemorySpaceMap(memorySpace)
 	pq := util.NewArrayPriorityQueue[CellInfo]()
 	visited := make(map[util.Vector]bool)
-	pq.Insert(CellInfo{pos: *start, shortestPath: 0, sym: '.'})
+	pq.Insert(CellInfo{pos: *start, shortestPath: make(map[util.Vector]bool), sym: '.'})
 	for !pq.IsEmpty() {
 		current := pq.Remove()
 		if current.pos.Equals(end) {
@@ -107,15 +129,15 @@ func (s *Day18Solution) findShortestPath(memorySpace util.Matrix[rune], start, e
 		neighbors := s.getValidNeighbors(memorySpaceMap, &current.pos)
 		for _, neighbor := range neighbors {
 			neighborInfo := memorySpaceMap.Get(neighbor)
-			shortestPath := current.shortestPath + 1
-			if !visited[*neighbor] && (neighborInfo.shortestPath == -1 || neighborInfo.shortestPath > shortestPath) {
-				neighborInfo.shortestPath = shortestPath
+			if !visited[*neighbor] && (neighborInfo.shortestPath == nil || len(neighborInfo.shortestPath) > len(current.shortestPath)+1) {
+				neighborInfo.shortestPath = s.copyMap(current.shortestPath)
+				neighborInfo.shortestPath[current.pos] = true
 				memorySpaceMap.Set(neighbor, neighborInfo)
 				pq.Insert(neighborInfo)
 			}
 		}
 	}
-	return -1
+	return nil
 }
 
 // getValidNeighbors returns the valid neighbors of a position in the memory
@@ -139,9 +161,17 @@ func (s *Day18Solution) getMemorySpaceMap(memorySpace util.Matrix[rune]) util.Ma
 		for j := 0; j < MemoryWidth; j++ {
 			position := util.NewVector(i, j)
 			if memorySpace.Get(position) == '.' {
-				memorySpaceMap.Set(position, CellInfo{pos: *position, shortestPath: -1, sym: '.'})
+				memorySpaceMap.Set(position, CellInfo{pos: *position, shortestPath: nil, sym: '.'})
 			}
 		}
 	}
 	return memorySpaceMap
+}
+
+func (s *Day18Solution) copyMap(orig map[util.Vector]bool) map[util.Vector]bool {
+	copy := make(map[util.Vector]bool)
+	for key, value := range orig {
+		copy[key] = value
+	}
+	return copy
 }
