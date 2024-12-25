@@ -64,6 +64,6 @@ func (v *Vector) GetManhattanDistance(other *Vector) *Vector {
 	return NewVector(v.X-other.X, v.Y-other.Y)
 }
 
-func (v *Vector) AddManhattanDistance(distance *Vector) *Vector {
-	return &Vector{X: v.X + distance.X, Y: v.Y + distance.Y}
+func (v *Vector) GetManhattanMagnitude() int {
+	return IntAbs(v.X) + IntAbs(v.Y)
 }

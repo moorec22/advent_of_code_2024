@@ -89,8 +89,8 @@ func (s *Day08Solution) getFixedAntinodes(one, two Antenna, cityMap util.Matrix[
 	fixedAntinodes := make([]*util.Vector, 0)
 	manhattanDistance := two.Vector.GetManhattanDistance(one.Vector)
 	negativeManhattanDistance := manhattanDistance.Negate()
-	oneAntinode := one.Vector.AddManhattanDistance(negativeManhattanDistance)
-	twoAntinode := two.Vector.AddManhattanDistance(manhattanDistance)
+	oneAntinode := one.Vector.Add(negativeManhattanDistance)
+	twoAntinode := two.Vector.Add(manhattanDistance)
 	if s.cityMap.PosInBounds(oneAntinode) {
 		fixedAntinodes = append(fixedAntinodes, oneAntinode)
 	}
@@ -111,12 +111,12 @@ func (s *Day08Solution) getResonantAntinodes(one, two Antenna, cityMap util.Matr
 	resonantFromOne := one.Vector
 	for s.cityMap.PosInBounds(resonantFromOne) {
 		resonantAntinodes = append(resonantAntinodes, resonantFromOne)
-		resonantFromOne = resonantFromOne.AddManhattanDistance(negativeUnitManhattanDistance)
+		resonantFromOne = resonantFromOne.Add(negativeUnitManhattanDistance)
 	}
 	resonantFromTwo := two.Vector
 	for s.cityMap.PosInBounds(resonantFromTwo) {
 		resonantAntinodes = append(resonantAntinodes, resonantFromTwo)
-		resonantFromTwo = resonantFromTwo.AddManhattanDistance(unitManhattanDistance)
+		resonantFromTwo = resonantFromTwo.Add(unitManhattanDistance)
 	}
 	return resonantAntinodes
 }
