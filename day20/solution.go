@@ -5,11 +5,13 @@
 // Part 1: I decided to preprocess the solution by running a djikstra's search
 // for the shortest path from the end to each cell reachable, so we can run
 // the following algorithm:
-//   - for each cell:
-//   - for each simple direction neighbor:
-//   - if neighbor is a wall and there's an empty space in the same direction:
-//   - if emptySpace.distanceToEnd - cell.distanceToEnd > 100:
+//   - for each cell 'cell':
+//   - for each reachable cell 'nextCell' with a manhattan distance of <= 2
+//   - if nextCell.distanceToEnd - cell.distanceToEnd > 100:
 //   - shortcuts++
+//
+// Part 2: With the solution of part 1, all we have to do is change '2' to
+// a variable, and set it to 20 for part 2.
 package day20
 
 import (
