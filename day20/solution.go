@@ -113,20 +113,6 @@ func (s *Day20Solution) getEmptyNeighbors(racetrack util.Matrix[RacetrackCell], 
 	return neighbors
 }
 
-// getWalledNeighbors takes a racetrack, and a position to consider. It returns
-// a map of directions to the neigbhor in that direction, if the neighbor is
-// a wall.
-func (s *Day20Solution) getWalledNeigbhors(racetrack util.Matrix[RacetrackCell], pos *util.Vector) map[*util.Vector]*util.Vector {
-	neighbors := make(map[*util.Vector]*util.Vector)
-	for _, d := range util.SimpleDirections {
-		neighbor := racetrack.Get(pos.Add(d))
-		if neighbor.sym == WallCell {
-			neighbors[d] = neighbor.pos
-		}
-	}
-	return neighbors
-}
-
 // getCheatMoves takes a racetrack, a position, and a cheat time to consider.
 // It returns the positions of all positions that may be considered for a cheat
 // that lasts cheatTime picoseconds.
