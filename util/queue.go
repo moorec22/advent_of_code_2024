@@ -25,12 +25,13 @@ func (q *ArrayQueue[T]) Insert(t T) {
 		q.arr = append(q.arr, t)
 	} else {
 		q.arr[q.size] = t
-		q.size++
 	}
+	q.size++
 }
 
 func (q *ArrayQueue[T]) Remove() T {
-	el := q.arr[q.size-1]
+	el := q.arr[0]
+	q.arr = q.arr[1:]
 	q.size--
 	return el
 }
@@ -41,4 +42,10 @@ func (q *ArrayQueue[T]) Size() int {
 
 func (q *ArrayQueue[T]) IsEmpty() bool {
 	return q.size == 0
+}
+
+func (q *ArrayQueue[T]) ToArray() []T {
+	newArray := make([]T, q.size)
+	copy(newArray, q.arr)
+	return newArray
 }
