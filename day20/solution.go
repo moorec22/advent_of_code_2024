@@ -5,11 +5,13 @@
 // Part 1: I decided to preprocess the solution by running a djikstra's search
 // for the shortest path from the end to each cell reachable, so we can run
 // the following algorithm:
-//   - for each cell:
-//   - for each simple direction neighbor:
-//   - if neighbor is a wall and there's an empty space in the same direction:
-//   - if emptySpace.distanceToEnd - cell.distanceToEnd > 100:
+//   - for each cell 'cell':
+//   - for each reachable cell 'nextCell' with a manhattan distance of <= 2
+//   - if nextCell.distanceToEnd - cell.distanceToEnd > 100:
 //   - shortcuts++
+//
+// Part 2: With the solution of part 1, all we have to do is change '2' to
+// a variable, and set it to 20 for part 2.
 package day20
 
 import (
@@ -108,20 +110,6 @@ func (s *Day20Solution) getEmptyNeighbors(racetrack util.Matrix[RacetrackCell], 
 		neighbor := racetrack.Get(pos.Add(d))
 		if neighbor.sym != WallCell {
 			neighbors[neighbor.pos] = true
-		}
-	}
-	return neighbors
-}
-
-// getWalledNeighbors takes a racetrack, and a position to consider. It returns
-// a map of directions to the neigbhor in that direction, if the neighbor is
-// a wall.
-func (s *Day20Solution) getWalledNeigbhors(racetrack util.Matrix[RacetrackCell], pos *util.Vector) map[*util.Vector]*util.Vector {
-	neighbors := make(map[*util.Vector]*util.Vector)
-	for _, d := range util.SimpleDirections {
-		neighbor := racetrack.Get(pos.Add(d))
-		if neighbor.sym == WallCell {
-			neighbors[d] = neighbor.pos
 		}
 	}
 	return neighbors
