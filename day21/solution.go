@@ -35,6 +35,11 @@
 //
 // Now knowing what order to choose and knowing it will produce a smallest-character
 // path, I decided to rewrite and simplify to strings for each layer.
+//
+// INCOMPLETE: I couldn't get the right answer for part 2, and after several
+// days could not figure out why. I ended up using the solution found
+// here https://github.com/AllanTaylor314/AdventOfCode/blob/main/2024/21.py
+// for now.
 package day21
 
 import (
@@ -58,17 +63,38 @@ var NumberPadPositions = map[rune]*util.Vector{
 	'A': util.NewVector(2, 3),
 }
 
-var NumberPadGap = util.NewVector(0, 3)
-
-var DirectionalPadPositions = map[rune]*util.Vector{
-	'^': util.NewVector(1, 0),
-	'A': util.NewVector(2, 0),
-	'<': util.NewVector(0, 1),
-	'v': util.NewVector(1, 1),
-	'>': util.NewVector(2, 1),
+type Transition struct {
+	from rune
+	to   rune
 }
 
-var DirectionalPadGap = util.NewVector(0, 0)
+var DirectionalTransitionSequences = map[Transition]string{
+	{'A', 'A'}: "A",
+	{'A', '^'}: "<A",
+	{'A', '<'}: "v<<A",
+	{'A', 'v'}: "<vA",
+	{'A', '>'}: "vA",
+
+	{'^', 'A'}: ">A",
+	{'^', '^'}: "A",
+	{'^', '>'}: "v>A",
+	{'^', '<'}: "v<A",
+
+	{'<', 'A'}: ">>^A",
+	{'<', '^'}: ">^A",
+	{'<', 'v'}: ">A",
+	{'<', '<'}: "A",
+
+	{'v', 'A'}: "^>A",
+	{'v', 'v'}: "A",
+	{'v', '>'}: ">A",
+	{'v', '<'}: "<A",
+
+	{'>', 'A'}: "^A",
+	{'>', '^'}: "<^A",
+	{'>', 'v'}: "<A",
+	{'>', '>'}: "A",
+}
 
 // FOR TESTING
 var DirectionalVectors = map[rune]*util.Vector{
@@ -122,83 +148,94 @@ func (s *Day21Solution) getCodeComplexity(code string, numDirectionalPads int) (
 	if err != nil {
 		return 0, err
 	}
-	moves, err := s.getRobotMoves(code, NumberPadPositions, NumberPadGap)
+	possibleMoves, err := s.getNumericalRobotMoves(code)
 	if err != nil {
 		return 0, err
 	}
-	for range numDirectionalPads {
-		moves, err = s.getPossibleRobotMoves(moves, DirectionalPadPositions, DirectionalPadGap)
-		if err != nil {
-			return 0, err
-		}
-	}
-	shortest, err := s.getShortest(moves)
-	return numericalCode * len(shortest), err
-}
-
-// getPossibleRobotMoves takes a set of codes, and returns all possible moves
-// a robot can do to make those codes, given the positions and the gap.
-func (s *Day21Solution) getPossibleRobotMoves(codes []string, positions map[rune]*util.Vector, gap *util.Vector) ([]string, error) {
-	possibleMoves := make([]string, 0)
-	for _, code := range codes {
-		possibleMove, err := s.getRobotMoves(code, positions, gap)
-		if err != nil {
-			return possibleMoves, err
-		}
-		possibleMoves = append(possibleMoves, possibleMove...)
-	}
-	return possibleMoves, nil
-}
-
-// getRobotMoves takes the code the pad operator has to press. It returns a
-// string representing a combination of directional keys to press to get the
-// code entered, with some constraints:
-//   - any directions needed to be pressed multiple times will be grouped
-//   - we always go up and down first, then left to right
-//
-// It returns an error if the code includes keys not found in positions.
-func (s *Day21Solution) getRobotMoves(code string, positions map[rune]*util.Vector, gap *util.Vector) ([]string, error) {
-	currentButton := 'A'
-	paths := util.NewArrayQueue[string]()
-	paths.Insert("")
-	for _, nextButton := range code {
-		newPaths, err := s.possiblePresses(currentButton, nextButton, positions, gap)
-		if err != nil {
-			return paths.ToArray(), err
-		}
-		size := paths.Size()
-		for range size {
-			prefix := paths.Remove()
-			for _, newPath := range newPaths {
-				paths.Insert(prefix + newPath)
+	minCount := -1
+	for _, moves := range possibleMoves {
+		transitions := s.getTransitionMap(moves)
+		for range numDirectionalPads {
+			transitions, err = s.getNextDirectionalMoves(transitions)
+			if err != nil {
+				return 0, err
 			}
 		}
-		currentButton = nextButton
+		count := s.getTotalCount(transitions)
+		if minCount == -1 || count < minCount {
+			minCount = count
+		}
 	}
-	return paths.ToArray(), nil
+	return numericalCode * minCount, err
 }
 
-// possiblePresses takes a start and an end, and finds all the possible
-// presses that can be made to get there, excluding ones that we know to be too
-// long.
-func (s *Day21Solution) possiblePresses(start, end rune, positions map[rune]*util.Vector, gap *util.Vector) ([]string, error) {
-	startPosition, ok := positions[start]
+// getNumericalPossibleRobotMoves takes a numerical code, and returns an
+// optimal directional pad sequence to make those moves. It returns an error
+// if any digit is not valid.
+func (s *Day21Solution) getNumericalRobotMoves(code string) ([]string, error) {
+	currentDigit := 'A'
+	moves := util.NewArrayQueue[string]()
+	moves.Insert("")
+	for _, nextDigit := range code {
+		sequences, err := s.getNumberPadSequences(currentDigit, nextDigit)
+		if err != nil {
+			return nil, err
+		}
+		size := moves.Size()
+		for range size {
+			baseSequence := moves.Remove()
+			for _, sequence := range sequences {
+				moves.Insert(baseSequence + sequence)
+			}
+		}
+		currentDigit = nextDigit
+	}
+	return moves.ToArray(), nil
+}
+
+// getNextDirectionalMoves takes a map of transitions to the number of
+// transitions made, and returns moves made by the next robot up in the form
+// of a transition map for that robot.
+func (s *Day21Solution) getNextDirectionalMoves(transitions map[Transition]int) (map[Transition]int, error) {
+	newTransitions := make(map[Transition]int)
+	for transition, count := range transitions {
+		sequence, ok := DirectionalTransitionSequences[transition]
+		if !ok {
+			return newTransitions, fmt.Errorf("transition not found in sequences: %s\v", sequence)
+		}
+		subTransitions := s.getTransitionMap(sequence)
+		for subTransition, subCount := range subTransitions {
+			oldCount, ok := newTransitions[subTransition]
+			if !ok {
+				oldCount = 0
+			}
+			newTransitions[subTransition] = oldCount + subCount*count
+		}
+	}
+	return newTransitions, nil
+}
+
+// buttonPresses takes a start and end, and returns an optimal seqeuence from
+// the start button to the end button.
+func (s *Day21Solution) getNumberPadSequences(start, end rune) ([]string, error) {
+	startPosition, ok := NumberPadPositions[start]
 	if !ok {
 		return nil, fmt.Errorf("code not found in positions: '%v'", start)
 	}
-	endPosition, ok := positions[end]
+	endPosition, ok := NumberPadPositions[end]
 	if !ok {
 		return nil, fmt.Errorf("code not found in positions: '%v'", end)
 	}
 	distance := endPosition.GetManhattanDistance(startPosition)
 	xString, yString := s.getDirectionalSegments(distance)
+	// order: left, (up, right), down
 	if xString == "" {
 		return []string{yString + "A"}, nil
 	} else if yString == "" {
 		return []string{xString + "A"}, nil
-	} else if util.NewVector(startPosition.X, endPosition.Y).Equals(gap) {
-		return []string{xString + yString + "A"}, nil
-	} else if util.NewVector(endPosition.X, startPosition.Y).Equals(gap) {
+	}
+	if startPosition.Y == 3 && endPosition.X == 0 {
+		// we need to go up first, otherwise we'll hit the gap
 		return []string{yString + xString + "A"}, nil
 	} else {
 		return []string{xString + yString + "A", yString + xString + "A"}, nil
@@ -238,34 +275,25 @@ func (s *Day21Solution) getNumericalCode(code string) (int, error) {
 	return strconv.Atoi(code[:len(code)-1])
 }
 
-// FOR TESTING, converts button presses to what the robot does
-func (s *Day21Solution) getPresses(moves string, positions map[rune]*util.Vector) string {
-	currentPosition := positions['A']
-	reversePositions := make(map[util.Vector]rune)
-	for k, v := range positions {
-		reversePositions[*v] = k
-	}
-	presses := ""
-	for _, move := range moves {
-		if move == 'A' {
-			presses += string(reversePositions[*currentPosition])
-		} else {
-			currentPosition = currentPosition.Add(DirectionalVectors[move])
+func (s *Day21Solution) getTransitionMap(moves string) map[Transition]int {
+	transitions := make(map[Transition]int)
+	currentButton := 'A'
+	for _, nextButton := range moves {
+		transition := Transition{currentButton, nextButton}
+		_, ok := transitions[transition]
+		if !ok {
+			transitions[transition] = 0
 		}
+		transitions[transition]++
+		currentButton = nextButton
 	}
-	return presses
+	return transitions
 }
 
-// getShortest returns the shortest string in codes.
-func (s *Day21Solution) getShortest(codes []string) (string, error) {
-	if len(codes) == 0 {
-		return "", fmt.Errorf("no codes in array")
+func (s *Day21Solution) getTotalCount(transitions map[Transition]int) int {
+	count := 0
+	for _, v := range transitions {
+		count += v
 	}
-	shortest := ""
-	for _, code := range codes {
-		if shortest == "" || len(code) < len(shortest) {
-			shortest = code
-		}
-	}
-	return shortest, nil
+	return count
 }
