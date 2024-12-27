@@ -3,10 +3,32 @@
 // https://adventofcode.com/2024/day/22
 package day22
 
-type Day22Solution struct{}
+import (
+	"advent/util"
+	"bufio"
+	"strconv"
+)
+
+type Day22Solution struct {
+	initialSecrets []int
+}
 
 func NewDay22Solution(filename string) (*Day22Solution, error) {
-	return &Day22Solution{}, nil
+	initialSecrets := make([]int, 0)
+	err := util.ProcessFile(filename, func(scanner *bufio.Scanner) error {
+		for scanner.scan() {
+			if scanner.Text() == "" {
+				continue
+			}
+			secret, err := strconv.Atoi(scanner.Text())
+			if err != nil {
+				return err
+			}
+			initialSecrets = append(initialSecrets, secret)
+		}
+		return scanner.Err()
+	})
+	return &Day22Solution{initialSecrets}, err
 }
 
 func (s *Day22Solution) PartOneAnswer() (int, error) {
