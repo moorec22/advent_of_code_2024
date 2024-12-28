@@ -13,11 +13,12 @@ import (
 	"strconv"
 )
 
+// 2^24
 const PruneNumber = 16777216
 
-const MultNumberOne = 64
-const DivNumber = 32
-const MultNumberTwo = 2048
+const FirstShiftUp = 6
+const FirstShiftDown = 5
+const SecondShiftUp = 11
 
 const DailyNewSecrets = 2000
 
@@ -63,9 +64,9 @@ func (s *Day22Solution) nthSecret(secret, n int) int {
 }
 
 func (s *Day22Solution) nextSecret(secret int) int {
-	secret = s.mixAndPruneNumber(secret, secret*MultNumberOne)
-	secret = s.mixAndPruneNumber(secret, secret/DivNumber)
-	secret = s.mixAndPruneNumber(secret, secret*MultNumberTwo)
+	secret = s.mixAndPruneNumber(secret, secret<<FirstShiftUp)
+	secret = s.mixAndPruneNumber(secret, secret>>FirstShiftDown)
+	secret = s.mixAndPruneNumber(secret, secret<<SecondShiftUp)
 
 	return secret
 }
@@ -82,5 +83,5 @@ func (s *Day22Solution) mixNumber(n, m int) int {
 
 // pruneNumber returns n % PruneNumber
 func (s *Day22Solution) pruneNumber(n int) int {
-	return n % PruneNumber
+	return n & (PruneNumber - 1)
 }
