@@ -2,12 +2,12 @@ package day24
 
 type Gate struct {
 	// variables that are input into a gate
-	Left, Right string
-	Compute     GateFunc
+	Left, Right, gateStr string
+	Compute              GateFunc
 }
 
-func NewGate(left, right string, compute GateFunc) *Gate {
-	return &Gate{left, right, compute}
+func NewGate(left, right, gateStr string) *Gate {
+	return &Gate{left, right, gateStr, GateFunctions[gateStr]}
 }
 
 // a simple, 2 input gate interface
