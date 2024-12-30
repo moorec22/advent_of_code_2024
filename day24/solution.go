@@ -13,9 +13,15 @@ import (
 	"advent/util"
 	"bufio"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 )
+
+var BitMap = map[bool]int{
+	false: 0,
+	true:  1,
+}
 
 type Day24Solution struct {
 	circuit   *Circuit
@@ -62,9 +68,32 @@ func NewDay24Solution(filename string) (*Day24Solution, error) {
 }
 
 func (s *Day24Solution) PartOneAnswer() (int, error) {
-	return 0, nil
+	zVars := s.getVariablesWithPrefix(s.variables, "z")
+	num := 0
+	for _, zVar := range zVars {
+		zVal, err := s.circuit.Solve(zVar)
+		if err != nil {
+			return 0, err
+		}
+		num = 2*num + BitMap[zVal]
+	}
+	return num, nil
 }
 
 func (s *Day24Solution) PartTwoAnswer() (int, error) {
 	return 0, nil
+}
+
+// getVariablesWithPrefix returns all variables that have the given prefix, in
+// reverse alphabetical order.
+func (s *Day24Solution) getVariablesWithPrefix(variables map[string]bool, prefix string) []string {
+	variableList := make([]string, 0)
+	for variable := range variables {
+		if strings.HasPrefix(variable, prefix) {
+			variableList = append(variableList, variable)
+		}
+	}
+	slices.Sort(variableList)
+	slices.Reverse(variableList)
+	return variableList
 }
