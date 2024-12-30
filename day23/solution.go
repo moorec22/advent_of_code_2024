@@ -11,6 +11,8 @@
 // dense graphs of size X. Then take a node n. If a dense graph is a subset
 // of n.connections, then {n, subset...} is a dense graph of size X plus
 // 1. Then, we can rewrite part 1 in this new way.
+// To make it efficient enough, all dense node sets are stored as values, keyed
+// by their alphabetical toString. This is also the final password.
 package day23
 
 import (
@@ -21,6 +23,7 @@ import (
 	"strings"
 )
 
+type NodeSetMap map[string]map[string]bool
 type Graph map[string]map[string]bool
 
 type Day23Solution struct {
@@ -54,12 +57,14 @@ func (s *Day23Solution) PartTwoAnswer() (int, error) {
 	if len(largestDenseSets) != 1 {
 		return 0, fmt.Errorf("there should be exactly one largest dense set, not %d", len(largestDenseSets))
 	}
-	fmt.Println(s.getPassword(largestDenseSets[0]))
+	for password := range largestDenseSets {
+		fmt.Printf("Password: %s\n", password)
+	}
 	return 0, nil
 }
 
 // getDenseSetsOfSize returns all fully dense sets found in graph of size size.
-func (s *Day23Solution) getDenseSetsOfSize(graph Graph, size int) []map[string]bool {
+func (s *Day23Solution) getDenseSetsOfSize(graph Graph, size int) NodeSetMap {
 	denseSets := s.getFirstDenseSets(graph)
 	for range size - 1 {
 		denseSets = s.getDenseSets(graph, denseSets)
@@ -69,11 +74,11 @@ func (s *Day23Solution) getDenseSetsOfSize(graph Graph, size int) []map[string]b
 
 // filterForPrefix returns a filtered list of all sets in sets that have at
 // least one string starting with prefix.
-func (s *Day23Solution) filterForPrefix(sets []map[string]bool, prefix string) []map[string]bool {
-	newSets := make([]map[string]bool, 0)
-	for _, set := range sets {
+func (s *Day23Solution) filterForPrefix(sets NodeSetMap, prefix string) NodeSetMap {
+	newSets := make(NodeSetMap, 0)
+	for el, set := range sets {
 		if s.containsPrefix(set, prefix) {
-			newSets = append(newSets, set)
+			newSets[el] = set
 		}
 	}
 	return newSets
@@ -81,7 +86,7 @@ func (s *Day23Solution) filterForPrefix(sets []map[string]bool, prefix string) [
 
 // getLargestDenseNodeSets returns a list of all node sets that are the largest
 // dense node sets found in graph.
-func (s *Day23Solution) getLargestDenseNodeSets(graph Graph) []map[string]bool {
+func (s *Day23Solution) getLargestDenseNodeSets(graph Graph) NodeSetMap {
 	denseSets := s.getFirstDenseSets(graph)
 	nextDenseSet := s.getDenseSets(graph, denseSets)
 	for len(nextDenseSet) > 0 {
@@ -98,32 +103,20 @@ func (s *Day23Solution) getLargestDenseNodeSets(graph Graph) []map[string]bool {
 // Given that, all dense sets of size X + 1 are returned. If no dense sets have
 // previously been found, set oldDenseSets to be the set of all nodes (which
 // are also all dense sets of size 1)
-func (s *Day23Solution) getDenseSets(graph Graph, oldDenseSets []map[string]bool) []map[string]bool {
-	denseSets := make([]map[string]bool, 0)
+func (s *Day23Solution) getDenseSets(graph Graph, oldDenseSets NodeSetMap) NodeSetMap {
+	denseSets := make(NodeSetMap, 0)
 	for node, connections := range graph {
 		for _, oldDenseSet := range oldDenseSets {
 			if _, ok := oldDenseSet[node]; !ok && s.isSubsetOf(connections, oldDenseSet) {
 				// node is not in the oldDenseSet, and is connected to all nodes in oldDenseSet
 				denseSet := util.CopyMap(oldDenseSet)
 				denseSet[node] = true
-				// this takes forever, what's a faster way to think about this?
-				if !s.nodeSetContains(denseSets, denseSet) {
-					denseSets = append(denseSets, denseSet)
-				}
+				denseSetString := s.getNodeSetString(denseSet)
+				denseSets[denseSetString] = denseSet
 			}
 		}
 	}
 	return denseSets
-}
-
-// nodeSetContains returns true if and only if nodeSets contains nodeSet.
-func (s *Day23Solution) nodeSetContains(nodeSets []map[string]bool, nodeSet map[string]bool) bool {
-	for _, ns := range nodeSets {
-		if len(ns) == len(nodeSet) && s.isSubsetOf(nodeSet, ns) {
-			return true
-		}
-	}
-	return false
 }
 
 // isSubsetOf returns true if and only if setTwo is a subset of setOne
@@ -149,17 +142,16 @@ func (s *Day23Solution) containsPrefix(set map[string]bool, prefix string) bool 
 
 // getFirstDenseSets takes a graph, and returns the dense sets of size one.
 // This is just a list of every node in its own set.
-func (s *Day23Solution) getFirstDenseSets(graph Graph) []map[string]bool {
-	denseSets := make([]map[string]bool, 0)
+func (s *Day23Solution) getFirstDenseSets(graph Graph) NodeSetMap {
+	denseSets := make(NodeSetMap)
 	for node := range graph {
-		denseSets = append(denseSets, map[string]bool{node: true})
+		denseSet := map[string]bool{node: true}
+		denseSets[s.getNodeSetString(denseSet)] = denseSet
 	}
 	return denseSets
 }
 
-// getPassword returns every node in nodes, sorted alphabetically, and
-// separated by commas.
-func (s *Day23Solution) getPassword(nodes map[string]bool) string {
+func (s *Day23Solution) getNodeSetString(nodes map[string]bool) string {
 	nodeList := make([]string, 0)
 	for node := range nodes {
 		nodeList = append(nodeList, node)
